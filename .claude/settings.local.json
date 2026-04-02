@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"E:/Github Desktop/CLI/gh.exe\" api repos/xandarDevs/pratik-chelina-wedding/pages -X POST -f build_type=workflow -f source.branch=master -f source.path=/)"
+    ]
+  }
+}
