@@ -176,6 +176,22 @@
   .submit-btn:hover{opacity:.88;box-shadow:0 4px 20px rgba(238,194,25,.35)}
   .success-msg{display:none;text-align:center;padding:2rem 1.5rem;font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);line-height:1.6}
 
+  /* ── RSVP Confirmation Modal ── */
+  .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal-card{background:var(--burg-dk);border:1px solid rgba(238,194,25,.3);border-radius:6px;padding:2.5rem;max-width:480px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 12px 50px rgba(0,0,0,.5)}
+  .modal-card .ornament{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);opacity:.6;letter-spacing:8px;text-align:center;margin-bottom:1.5rem}
+  .modal-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);text-align:center;font-weight:400;margin-bottom:1.5rem}
+  .modal-row{margin-bottom:1rem}
+  .modal-label{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);opacity:.6;margin-bottom:.2rem}
+  .modal-value{font-size:17px;color:var(--cream);font-weight:300;line-height:1.5}
+  .modal-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(238,194,25,.15),transparent);margin:1.25rem 0}
+  .modal-buttons{display:flex;gap:1rem;margin-top:1.75rem}
+  .modal-btn{flex:1;padding:.85rem;border-radius:3px;font-family:'Lato',sans-serif;font-size:14px;letter-spacing:4px;text-transform:uppercase;font-weight:400;cursor:pointer;transition:opacity .2s,box-shadow .2s}
+  .modal-btn:hover{opacity:.88}
+  .modal-btn.confirm{background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;box-shadow:0 2px 12px rgba(238,194,25,.25)}
+  .modal-btn.edit{background:transparent;color:var(--gold);border:1px solid rgba(238,194,25,.35);box-shadow:none}
+
   #events{background:var(--burg)}
   .events-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem;max-width:780px;width:100%;margin-top:2.5rem}
   .event-card{background:rgba(255,255,255,.05);border:1px solid rgba(238,194,25,.2);border-radius:4px;padding:2rem;text-align:center}
@@ -444,16 +460,22 @@
         <input type="text" id="name" placeholder="Your name" required/>
       </div>
       <div class="form-row">
-        <label>Email Address <span style="color:var(--gold-lt);opacity:1">*</span></label>
-        <input type="email" id="email" placeholder="your@email.com" required/>
-      </div>
-      <div class="form-row">
         <label>Reception Attendance</label>
         <div class="radio-group">
-          <label><input type="radio" name="attend" value="yes" checked onclick="toggleCeremony(this)"/> Joyfully accepts</label>
-          <label><input type="radio" name="attend" value="no" onclick="toggleCeremony(this)"/> Regretfully declines</label>
+          <label><input type="radio" name="attend" value="yes" checked onclick="toggleAttendance(this)"/> Joyfully accepts</label>
+          <label><input type="radio" name="attend" value="no" onclick="toggleAttendance(this)"/> Regretfully declines</label>
         </div>
       </div>
+      <div id="accept-fields">
+      <div class="form-row">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="your@email.com"/>
+      </div>
+      <div class="form-row">
+        <label>Phone Number <span style="color:var(--gold-lt);opacity:.7;font-size:12px;letter-spacing:1px">(Recommended)</span></label>
+        <input type="tel" id="phone" placeholder="+1 (xxx) xxx-xxxx"/>
+      </div>
+      <p id="contact-hint" style="font-size:13px;color:rgba(253,248,240,.4);letter-spacing:1px;margin-top:-.5rem;margin-bottom:1.25rem"><span style="color:var(--gold-lt)">*</span> Please provide at least an email or phone number</p>
       <div class="form-row-slide" id="ceremony-row">
         <label>Ceremony</label>
         <div class="checkbox-row">
@@ -484,11 +506,16 @@
         <textarea id="message" rows="3" placeholder="Share your well wishes…" style="resize:vertical"></textarea>
       </div>
       <p style="font-size:15px;color:rgba(253,248,240,.4);letter-spacing:1px;margin-bottom:.75rem"><span style="color:var(--gold-lt)">*</span> Required fields</p>
+      </div><!-- /accept-fields -->
       <button class="submit-btn" onclick="submitRSVP()">Send RSVP</button>
     </div>
     <div class="success-msg" id="success">
       <div style="font-size:28px;color:var(--gold);margin-bottom:.75rem">✦</div>
       Thank you! We can't wait to celebrate with you.
+    </div>
+    <div class="success-msg" id="success-decline">
+      <div style="font-size:28px;color:var(--gold);margin-bottom:.75rem">✦</div>
+      Thank you for letting us know.<br>We'll miss you and hope to celebrate together another time.
     </div>
   </div>
 </section>
@@ -590,35 +617,102 @@ new IntersectionObserver(function(entries){
 
 // Initialise conditional fields to match the default checked state on load
 window.addEventListener('DOMContentLoaded',function(){
-  toggleCeremony(document.querySelector('input[name="attend"]:checked'));
+  toggleAttendance(document.querySelector('input[name="attend"]:checked'));
   toggleGuests(document.querySelector('input[name="hasguests"]:checked'));
 });
 
 function toggleGuests(radio){
-  const row=document.getElementById('guests-row');
+  var row=document.getElementById('guests-row');
   if(radio.value==='yes'){row.classList.add('open');}
   else{row.classList.remove('open');document.getElementById('guests').value='1';}
 }
 
-function toggleCeremony(radio){
-  const row=document.getElementById('ceremony-row');
-  if(radio.value==='yes'){row.classList.add('open');}
-  else{row.classList.remove('open');document.getElementById('ceremony').checked=false;}
+function toggleAttendance(radio){
+  var ceremonyRow=document.getElementById('ceremony-row');
+  var acceptFields=document.getElementById('accept-fields');
+  if(radio.value==='yes'){
+    acceptFields.style.display='';
+    ceremonyRow.classList.add('open');
+  } else {
+    acceptFields.style.display='none';
+    ceremonyRow.classList.remove('open');
+    document.getElementById('ceremony').checked=false;
+  }
 }
 
 function submitRSVP(){
-  const nameEl=document.getElementById('name');
-  const emailEl=document.getElementById('email');
-  const email=emailEl.value.trim();
+  var nameEl=document.getElementById('name');
+  var emailEl=document.getElementById('email');
+  var phoneEl=document.getElementById('phone');
+  var hint=document.getElementById('contact-hint');
+  var attend=document.querySelector('input[name="attend"]:checked').value;
+  var accepting=attend==='yes';
+  var email=emailEl.value.trim();
+  var phone=phoneEl.value.trim();
+  var err='rgba(220,80,80,.8)';
   nameEl.style.borderColor='';
   emailEl.style.borderColor='';
-  let valid=true;
-  if(!nameEl.value.trim()){nameEl.style.borderColor='rgba(220,80,80,.8)';nameEl.focus();valid=false;}
-  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailEl.style.borderColor='rgba(220,80,80,.8)';if(valid)emailEl.focus();valid=false;}
+  phoneEl.style.borderColor='';
+  hint.style.color='';
+  var valid=true;
+  if(!nameEl.value.trim()){nameEl.style.borderColor=err;nameEl.focus();valid=false;}
+  if(accepting){
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailEl.style.borderColor=err;if(valid)emailEl.focus();valid=false;}
+    if(!email&&!phone){emailEl.style.borderColor=err;phoneEl.style.borderColor=err;hint.style.color=err;if(valid)emailEl.focus();valid=false;}
+  }
   if(!valid)return;
+
+  // Build confirmation summary
+  var ceremony=document.getElementById('ceremony').checked;
+  var hasGuests=document.querySelector('input[name="hasguests"]:checked').value;
+  var guestCount=document.getElementById('guests').value;
+  var dietary=document.getElementById('dietary').value.trim();
+  var message=document.getElementById('message').value.trim();
+
+  var html='';
+  function row(label,value){html+='<div class="modal-row"><div class="modal-label">'+label+'</div><div class="modal-value">'+value+'</div></div>';}
+  row('Name',nameEl.value.trim());
+  if(accepting&&email)row('Email',email);
+  if(accepting&&phone)row('Phone',phone);
+  html+='<div class="modal-divider"></div>';
+  row('Reception',accepting?'Joyfully accepts':'Regretfully declines');
+  if(accepting&&ceremony)row('Ceremony','Attending on Thursday, July 2nd');
+  if(accepting&&hasGuests==='yes')row('Guests',guestCount);
+  if(accepting&&dietary)row('Dietary Requirements',dietary);
+  if(message)row('Message',message);
+
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('rsvp-modal').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('rsvp-modal').classList.remove('open');
+}
+
+function confirmRSVP(){
+  var attend=document.querySelector('input[name="attend"]:checked').value;
+  document.getElementById('rsvp-modal').classList.remove('open');
   document.getElementById('rsvp-form').style.display='none';
-  document.getElementById('success').style.display='block';
+  if(attend==='yes'){
+    document.getElementById('success').style.display='block';
+  } else {
+    document.getElementById('success-decline').style.display='block';
+  }
 }
 </script>
+
+<!-- RSVP Confirmation Modal -->
+<div class="modal-overlay" id="rsvp-modal">
+  <div class="modal-card">
+    <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+    <h3 class="modal-title">Please Confirm Your RSVP</h3>
+    <div id="modal-body"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn edit" onclick="closeModal()">Edit</button>
+      <button class="modal-btn confirm" onclick="confirmRSVP()">Confirm</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
