@@ -171,7 +171,13 @@
   .radio-group label{letter-spacing:0;text-transform:none;font-size:17px;display:flex;align-items:center;gap:.5rem;cursor:pointer;opacity:1;color:var(--cream)}
   .radio-group input[type=radio]{width:auto;accent-color:var(--gold)}
   .form-row-slide{overflow:hidden;max-height:0;opacity:0;margin-bottom:0;transition:max-height .35s ease,opacity .28s ease,margin-bottom .35s ease}
-  .form-row-slide.open{max-height:150px;opacity:1;margin-bottom:1.25rem}
+  .form-row-slide.open{max-height:800px;opacity:1;margin-bottom:1.25rem}
+  .guest-details{margin-top:.75rem}
+  .guest-entry{display:flex;gap:.5rem;margin-bottom:.5rem;align-items:center}
+  .guest-entry span{color:var(--gold);font-size:13px;min-width:18px;text-align:center}
+  .guest-entry input{flex:1;padding:.6rem .75rem;border:1px solid rgba(212,175,55,.18);border-radius:8px;background:rgba(212,175,55,.04);color:var(--cream);font-family:inherit;font-size:15px;outline:none;transition:border-color .2s}
+  .guest-entry input:focus{border-color:var(--gold)}
+  .guest-entry input::placeholder{color:rgba(253,248,240,.25)}
   .submit-btn{width:100%;padding:1rem;background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;border-radius:3px;font-size:15px;letter-spacing:5px;text-transform:uppercase;font-weight:400;cursor:pointer;transition:opacity .2s,box-shadow .2s;margin-top:.25rem;font-family:'Lato',sans-serif;box-shadow:0 2px 12px rgba(238,194,25,.25)}
   .submit-btn:hover{opacity:.88;box-shadow:0 4px 20px rgba(238,194,25,.35)}
   .success-msg{display:none;text-align:center;padding:2rem 1.5rem;font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);line-height:1.6}
@@ -492,9 +498,10 @@
       </div>
       <div class="form-row-slide" id="guests-row">
         <label>Number of Guests</label>
-        <select id="guests">
+        <select id="guests" onchange="renderGuestFields()">
           <option>1</option><option>2</option><option>3</option><option>4</option>
         </select>
+        <div class="guest-details" id="guest-details"></div>
       </div>
       <div class="form-divider"></div>
       <div class="form-row">
@@ -623,8 +630,29 @@ window.addEventListener('DOMContentLoaded',function(){
 
 function toggleGuests(radio){
   var row=document.getElementById('guests-row');
-  if(radio.value==='yes'){row.classList.add('open');}
-  else{row.classList.remove('open');document.getElementById('guests').value='1';}
+  if(radio.value==='yes'){row.classList.add('open');renderGuestFields();}
+  else{row.classList.remove('open');document.getElementById('guests').value='1';document.getElementById('guest-details').innerHTML='';}
+}
+
+function renderGuestFields(){
+  var count=parseInt(document.getElementById('guests').value);
+  var container=document.getElementById('guest-details');
+  var existing=container.querySelectorAll('.guest-entry');
+  // preserve already-entered values
+  var saved=[];
+  for(var i=0;i<existing.length;i++){
+    var inputs=existing[i].querySelectorAll('input');
+    saved.push({name:inputs[0].value,rel:inputs[1].value});
+  }
+  container.innerHTML='';
+  for(var i=0;i<count;i++){
+    var div=document.createElement('div');
+    div.className='guest-entry';
+    div.innerHTML='<span>'+(i+1)+'.</span>'
+      +'<input type="text" class="guest-name" placeholder="Full name *" value="'+(saved[i]?saved[i].name:'')+'"/>'
+      +'<input type="text" class="guest-rel" placeholder="Relationship *" value="'+(saved[i]?saved[i].rel:'')+'"/>';
+    container.appendChild(div);
+  }
 }
 
 function toggleAttendance(radio){
@@ -660,6 +688,20 @@ function submitRSVP(){
     if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailEl.style.borderColor=err;if(valid)emailEl.focus();valid=false;}
     if(!email&&!phone){emailEl.style.borderColor=err;phoneEl.style.borderColor=err;hint.style.color=err;if(valid)emailEl.focus();valid=false;}
   }
+  // Validate guest detail fields when bringing guests
+  if(accepting){
+    var hasGuestsVal=document.querySelector('input[name="hasguests"]:checked').value;
+    if(hasGuestsVal==='yes'){
+      var gNames=document.querySelectorAll('#guest-details .guest-name');
+      var gRels=document.querySelectorAll('#guest-details .guest-rel');
+      for(var i=0;i<gNames.length;i++){
+        if(!gNames[i].value.trim()){gNames[i].style.borderColor=err;if(valid)gNames[i].focus();valid=false;}
+        else{gNames[i].style.borderColor='';}
+        if(!gRels[i].value.trim()){gRels[i].style.borderColor=err;if(valid)gRels[i].focus();valid=false;}
+        else{gRels[i].style.borderColor='';}
+      }
+    }
+  }
   if(!valid)return;
 
   // Build confirmation summary
@@ -677,7 +719,16 @@ function submitRSVP(){
   html+='<div class="modal-divider"></div>';
   row('Reception',accepting?'Joyfully accepts':'Regretfully declines');
   if(accepting&&ceremony)row('Ceremony','Attending on Thursday, July 2nd');
-  if(accepting&&hasGuests==='yes')row('Guests',guestCount);
+  if(accepting&&hasGuests==='yes'){
+    var gNames=document.querySelectorAll('#guest-details .guest-name');
+    var gRels=document.querySelectorAll('#guest-details .guest-rel');
+    var guestHtml='';
+    for(var i=0;i<gNames.length;i++){
+      guestHtml+=(i+1)+'. '+gNames[i].value.trim()+' ('+gRels[i].value.trim()+')';
+      if(i<gNames.length-1)guestHtml+='<br>';
+    }
+    row('Guests',guestHtml);
+  }
   if(accepting&&dietary)row('Dietary Requirements',dietary);
   if(message)row('Message',message);
 
