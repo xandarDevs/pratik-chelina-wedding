@@ -670,11 +670,12 @@ function toggleAttendance(radio){
   var acceptFields=document.getElementById('accept-fields');
   if(radio.value==='yes'){
     acceptFields.style.display='';
-    ceremonyRow.classList.add('open');
+    if(ceremonyRow)ceremonyRow.classList.add('open');
   } else {
     acceptFields.style.display='none';
-    ceremonyRow.classList.remove('open');
-    document.getElementById('ceremony').checked=false;
+    if(ceremonyRow)ceremonyRow.classList.remove('open');
+    var ceremonyCheckbox=document.getElementById('ceremony');
+    if(ceremonyCheckbox)ceremonyCheckbox.checked=false;
   }
 }
 
@@ -741,7 +742,8 @@ function submitRSVP(){
   };
 
   // Build confirmation summary
-  var ceremony=document.getElementById('ceremony').checked;
+  var ceremonyEl=document.getElementById('ceremony');
+  var ceremony=ceremonyEl?ceremonyEl.checked:false;
   var hasGuests=document.querySelector('input[name="hasguests"]:checked').value;
   var guestCount=document.getElementById('guests').value;
   var dietary=document.getElementById('dietary').value.trim();
@@ -786,7 +788,7 @@ function confirmRSVP(){
   confirmBtn.textContent='Submitting...';
   
   // Submit to Google Sheets via Apps Script
-  if(appsScriptUrl && appsScriptUrl !== 'https://script.google.com/macros/s/AKfycby7jfoeRPavFQ71B-h356cDiXCyyOY6vPmbRO2kGmvx6jHeIe8THcr_MfltK2WUMtJF/exec' && pendingRsvpData){
+  if(appsScriptUrl && appsScriptUrl !== 'YOUR_APPS_SCRIPT_URL_HERE' && pendingRsvpData){
     fetch(appsScriptUrl, {
       method: 'POST',
       body: JSON.stringify(pendingRsvpData),
