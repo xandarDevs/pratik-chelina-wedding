@@ -561,10 +561,10 @@
 </footer>
 
 <script>
-// ========== GOOGLE SHEETS INTEGRATION ==========
-// Replace this URL with your deployed Apps Script web app URL from Step 3 of RSVP_SETUP.md
-// const appsScriptUrl = 'YOUR_APPS_SCRIPT_URL_HERE';
-const appsScriptUrl = 'https://script.google.com/macros/s/AKfycby7jfoeRPavFQ71B-h356cDiXCyyOY6vPmbRO2kGmvx6jHeIe8THcr_MfltK2WUMtJF/exec';
+// ========== LOCAL DATABASE INTEGRATION ==========
+// Replace this URL with your local server URL when running locally
+// For production, you might want to deploy this to a server
+const appsScriptUrl = 'http://localhost:5000/api/rsvp';
 let pendingRsvpData = null; // Store form data for submission after confirmation
 
 const petalColors=['#EEC219','#c9a414','#f5d567','#a8292d','#fdf8f0'];
