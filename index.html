@@ -561,10 +561,60 @@
 </footer>
 
 <script>
-// ========== LOCAL DATABASE INTEGRATION ==========
-// Replace this URL with your local server URL when running locally
-// For production, you might want to deploy this to a server
-const appsScriptUrl = 'http://localhost:5000/api/rsvp';
+// ========== GITHUB ISSUES INTEGRATION ==========
+// RSVP data will be stored as GitHub Issues in your repository
+// Replace with your GitHub repository details
+const githubOwner = 'xandarDevs';
+const githubRepo = 'pratik-chelina-wedding';
+const githubToken = 'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN'; // You'll need to create this
+
+// Function to create a GitHub Issue with RSVP data
+async function submitToGitHubIssue(rsvpData) {
+  const issueTitle = `RSVP: ${rsvpData.name}`;
+  const issueBody = createIssueBody(rsvpData);
+
+  const response = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/issues`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${githubToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: issueTitle,
+      body: issueBody,
+      labels: ['rsvp', rsvpData.attendance.toLowerCase()]
+    })
+  });
+
+  return response.json();
+}
+
+// Format RSVP data as GitHub issue body
+function createIssueBody(data) {
+  let body = `## RSVP Details\n\n`;
+  body += `**Name:** ${data.name}\n`;
+  body += `**Attendance:** ${data.attendance}\n`;
+
+  if (data.attendance === 'Accepted') {
+    if (data.email) body += `**Email:** ${data.email}\n`;
+    if (data.phone) body += `**Phone:** ${data.phone}\n`;
+    body += `**Has Guests:** ${data.hasGuests}\n`;
+
+    if (data.hasGuests === 'Yes' && data.guests && data.guests.length > 0) {
+      body += `\n### Guests\n`;
+      data.guests.forEach((guest, i) => {
+        body += `${i + 1}. ${guest.name} (${guest.relationship})\n`;
+      });
+    }
+
+    if (data.dietary) body += `\n**Dietary Requirements:** ${data.dietary}\n`;
+  }
+
+  if (data.message) body += `\n**Message:** ${data.message}\n`;
+
+  body += `\n---\n*Submitted via wedding website*`;
+  return body;
+}
 let pendingRsvpData = null; // Store form data for submission after confirmation
 
 const petalColors=['#EEC219','#c9a414','#f5d567','#a8292d','#fdf8f0'];
@@ -778,25 +828,36 @@ function closeModal(){
   document.getElementById('rsvp-modal').classList.remove('open');
 }
 
-function confirmRSVP(){
+async function confirmRSVP(){
   var attend=document.querySelector('input[name="attend"]:checked').value;
   var confirmBtn=document.querySelector('#rsvp-modal .modal-btn.confirm');
   var originalText=confirmBtn.textContent;
-  
+
   // Show loading state
   confirmBtn.disabled=true;
   confirmBtn.textContent='Submitting...';
-  
-  // Submit to Google Sheets via Apps Script
-  if(appsScriptUrl && appsScriptUrl !== 'YOUR_APPS_SCRIPT_URL_HERE' && pendingRsvpData){
-    fetch(appsScriptUrl, {
-      method: 'POST',
-      body: JSON.stringify(pendingRsvpData),
-      headers: {'Content-Type': 'application/json'}
-    })
-    .then(response => response.json())
-    .then(data => {
-      // Submission successful
+
+  try {
+    // Submit to GitHub Issues
+    if(githubToken && githubToken !== 'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN' && pendingRsvpData){
+      const result = await submitToGitHubIssue(pendingRsvpData);
+
+      if(result.id){
+        // Submission successful
+        document.getElementById('rsvp-modal').classList.remove('open');
+        document.getElementById('rsvp-form').style.display='none';
+        if(attend==='yes'){
+          document.getElementById('success').style.display='block';
+        } else {
+          document.getElementById('success-decline').style.display='block';
+        }
+        pendingRsvpData=null;
+      } else {
+        throw new Error('Failed to create GitHub issue');
+      }
+    } else {
+      // GitHub token not configured - show local success anyway
+      console.warn('GitHub token not configured. RSVP data not sent to GitHub.');
       document.getElementById('rsvp-modal').classList.remove('open');
       document.getElementById('rsvp-form').style.display='none';
       if(attend==='yes'){
@@ -804,35 +865,21 @@ function confirmRSVP(){
       } else {
         document.getElementById('success-decline').style.display='block';
       }
-      pendingRsvpData=null;
-    })
-    .catch(error => {
-      // Show error message but still close modal
-      console.error('RSVP submission error:', error);
-      document.getElementById('rsvp-modal').classList.remove('open');
-      document.getElementById('rsvp-form').style.display='none';
-      // Still show success message to user (data was validated)
-      if(attend==='yes'){
-        document.getElementById('success').style.display='block';
-      } else {
-        document.getElementById('success-decline').style.display='block';
-      }
-      alert('Note: Your RSVP was recorded locally but may not have been saved to the sheet. Please check with the couple if you do not receive a confirmation email.');
-    })
-    .finally(() => {
-      confirmBtn.disabled=false;
-      confirmBtn.textContent=originalText;
-    });
-  } else {
-    // Apps Script URL not configured - show local success anyway
-    console.warn('Apps Script URL not configured. RSVP data not sent to sheet.');
+      alert('Note: GitHub token not configured. RSVP was not saved. Please contact the couple directly.');
+    }
+  } catch(error) {
+    // Show error message but still close modal
+    console.error('RSVP submission error:', error);
     document.getElementById('rsvp-modal').classList.remove('open');
     document.getElementById('rsvp-form').style.display='none';
+    // Still show success message to user (data was validated)
     if(attend==='yes'){
       document.getElementById('success').style.display='block';
     } else {
       document.getElementById('success-decline').style.display='block';
     }
+    alert('Note: There was an issue saving your RSVP. Please contact the couple directly to confirm your response.');
+  } finally {
     confirmBtn.disabled=false;
     confirmBtn.textContent=originalText;
   }

@@ -1,72 +1,100 @@
-# Wedding RSVP System - Local Python/Flask + SQLite Database
+# Wedding RSVP System - GitHub Issues Storage
 
-This is a local RSVP system for the wedding website that stores responses in a SQLite database using Python Flask.
+This is a **completely GitHub-native** RSVP system that stores responses as GitHub Issues in your repository. No servers, databases, or external services required!
 
-## Setup
+## How It Works
 
-1. **Install Python** (if not already installed):
-   - Download from: https://python.org
-   - Or use: `winget install Python.Python.3.11`
+- **Static Website**: Hosted on GitHub Pages (free)
+- **Form Submissions**: Stored as GitHub Issues in your repository
+- **Data Access**: View RSVPs directly in GitHub Issues
+- **No Maintenance**: Works passively without any running services
 
-2. **Install dependencies:**
-   ```bash
-   pip install Flask Flask-CORS
+## Setup Instructions
+
+### 1. Create a GitHub Personal Access Token
+
+1. Go to [GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)](https://github.com/settings/tokens)
+2. Click **"Generate new token (classic)"**
+3. Give it a name like `"Wedding RSVP Token"`
+4. Select scopes: **`public_repo`** (for public repos) or **`repo`** (for private repos)
+5. Click **"Generate token"**
+6. **Copy the token immediately** (you won't see it again!)
+
+### 2. Update the Website Code
+
+1. Open `index.html` in your editor
+2. Find these lines near the top of the `<script>` section:
+   ```javascript
+   const githubOwner = 'xandarDevs';
+   const githubRepo = 'pratik-chelina-wedding';
+   const githubToken = 'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN';
    ```
+3. Replace `'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN'` with your actual token
+4. **Important**: Keep this token private! Don't commit it to the repository.
 
-3. **Start the server:**
-   ```bash
-   py app.py
-   ```
+### 3. Enable GitHub Pages
 
-   The server will start and show:
-   ```
-   Wedding RSVP server starting...
-   Website: http://localhost:5000
-   View RSVPs: http://localhost:5000/api/rsvps
-   ```
+1. Go to your repository settings
+2. Scroll to **"Pages"** section
+3. Under **Source**, select **"Deploy from a branch"**
+4. Choose **"master"** branch and **"/ (root)"** folder
+5. Click **"Save"**
 
-## How it works
+### 4. Test the System
 
-- RSVPs are stored in a local SQLite database (`rsvp.db`)
-- The database is created automatically when you first run the server
-- All submissions include timestamps and are stored permanently
+1. Visit your GitHub Pages URL (usually `https://YOUR_USERNAME.github.io/YOUR_REPO_NAME`)
+2. Fill out and submit the RSVP form
+3. Check your repository's **Issues** tab - a new issue should appear with the RSVP data!
 
-## Database Schema
+## Data Storage
 
-The `rsvps` table contains:
-- `id`: Auto-incrementing primary key
-- `timestamp`: When the RSVP was submitted
-- `name`: Guest's full name
-- `attendance`: "Accepted" or "Declined"
-- `email`: Guest's email (optional)
-- `phone`: Guest's phone (optional)
-- `has_guests`: "Yes" or "No"
-- `guest_count`: Number of additional guests
-- `guest_details`: Formatted string of guest information
-- `dietary_requirements`: Any dietary notes
-- `message`: Personal message from guest
-
-## Testing the RSVP Form
-
-1. **Open your browser** to: http://localhost:5000
-2. **Fill out the RSVP form** and submit it
-3. **Check the database** by visiting: http://localhost:5000/api/rsvps
+Each RSVP creates a GitHub Issue with:
+- **Title**: `RSVP: [Guest Name]`
+- **Labels**: `rsvp` + `accepted` or `declined`
+- **Body**: Formatted RSVP details including:
+  - Name, attendance status
+  - Contact info (if attending)
+  - Guest details (if bringing guests)
+  - Dietary requirements
+  - Personal message
 
 ## Viewing RSVPs
 
-You can view all RSVPs by visiting: http://localhost:5000/api/rsvps
+- Go to your repository → **Issues** tab
+- Filter by label `rsvp` to see all responses
+- Use GitHub's search: `label:rsvp is:issue`
+- Export data using GitHub's issue export features
 
-This returns JSON data that you can view in your browser.
+## Security Notes
 
-## Production Deployment
-
-For a live website, you'll need to:
-1. Deploy the Flask app to a hosting service (Heroku, DigitalOcean, etc.)
-2. Update the `appsScriptUrl` in `index.html` to point to your deployed server
-3. Make sure the server has proper security and HTTPS
+- The Personal Access Token has limited permissions (only issues access)
+- Token is stored client-side (in browser JavaScript)
+- For better security, consider using a GitHub App instead of a PAT
+- Never commit the token to your repository
 
 ## Troubleshooting
 
-- Make sure port 5000 is not already in use
-- If you get database errors, delete `rsvp.db` and restart the server
-- Check the console for error messages
+**Form doesn't submit:**
+- Check browser console for errors
+- Verify the GitHub token is correct and has `repo` or `public_repo` scope
+- Make sure repository exists and is accessible
+
+**Issues not created:**
+- Check token permissions
+- Verify repository name and owner are correct in the code
+- Look at browser network tab for API errors
+
+**GitHub Pages not working:**
+- Wait a few minutes after enabling Pages
+- Check repository settings to ensure Pages is enabled
+- Verify the site builds successfully
+
+## Benefits of This Approach
+
+✅ **Completely free** - Uses only GitHub services
+✅ **No server maintenance** - Works passively
+✅ **Data persistence** - Stored in GitHub's reliable infrastructure
+✅ **Easy access** - View RSVPs directly in GitHub Issues
+✅ **Version control** - All data is tracked in git history
+✅ **Searchable** - Use GitHub's powerful search features
+✅ **Exportable** - Download issues data easily
