@@ -1,2 +1,5 @@
 desktop.ini
 *.gsheet
+.env
+rsvp.db
+node_modules/

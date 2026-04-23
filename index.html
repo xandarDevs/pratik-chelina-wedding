@@ -561,30 +561,22 @@
 </footer>
 
 <script>
-// ========== GITHUB ISSUES INTEGRATION ==========
-// RSVP data will be stored as GitHub Issues in your repository
-// Replace with your GitHub repository details
-const githubOwner = 'xandarDevs';
-const githubRepo = 'pratik-chelina-wedding';
-const githubToken = 'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN'; // Replace locally and do not commit this token
+// ========== SECURE BACKEND PROXY ==========
+// Do not store a GitHub token in browser JavaScript. Use a server-side proxy instead.
+const apiEndpoint = 'https://your-backend.example.com/api/rsvp';
 
-// Function to create a GitHub Issue with RSVP data
-async function submitToGitHubIssue(rsvpData) {
-  const issueTitle = `RSVP: ${rsvpData.name}`;
-  const issueBody = createIssueBody(rsvpData);
-
-  const response = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/issues`, {
+async function submitToBackend(rsvpData) {
+  const response = await fetch(apiEndpoint, {
     method: 'POST',
     headers: {
-      'Authorization': `token ${githubToken}`,
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      title: issueTitle,
-      body: issueBody,
-      labels: ['rsvp', rsvpData.attendance.toLowerCase()]
-    })
+    body: JSON.stringify(rsvpData)
   });
+
+  if (!response.ok) {
+    throw new Error('Unable to submit RSVP');
+  }
 
   return response.json();
 }
@@ -838,26 +830,9 @@ async function confirmRSVP(){
   confirmBtn.textContent='Submitting...';
 
   try {
-    // Submit to GitHub Issues
-    if(githubToken && githubToken !== 'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN' && pendingRsvpData){
-      const result = await submitToGitHubIssue(pendingRsvpData);
+    const result = await submitToBackend(pendingRsvpData);
 
-      if(result.id){
-        // Submission successful
-        document.getElementById('rsvp-modal').classList.remove('open');
-        document.getElementById('rsvp-form').style.display='none';
-        if(attend==='yes'){
-          document.getElementById('success').style.display='block';
-        } else {
-          document.getElementById('success-decline').style.display='block';
-        }
-        pendingRsvpData=null;
-      } else {
-        throw new Error('Failed to create GitHub issue');
-      }
-    } else {
-      // GitHub token not configured - show local success anyway
-      console.warn('GitHub token not configured. RSVP data not sent to GitHub.');
+    if(result.success){
       document.getElementById('rsvp-modal').classList.remove('open');
       document.getElementById('rsvp-form').style.display='none';
       if(attend==='yes'){
@@ -865,7 +840,9 @@ async function confirmRSVP(){
       } else {
         document.getElementById('success-decline').style.display='block';
       }
-      alert('Note: GitHub token not configured. RSVP was not saved. Please contact the couple directly.');
+      pendingRsvpData=null;
+    } else {
+      throw new Error(result.error || 'Failed to submit RSVP');
     }
   } catch(error) {
     // Show error message but still close modal
