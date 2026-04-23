@@ -561,9 +561,11 @@
 </footer>
 
 <script>
-// ========== SECURE BACKEND PROXY ==========
-// Do not store a GitHub token in browser JavaScript. Use a server-side proxy instead.
-const apiEndpoint = 'https://your-backend.example.com/api/rsvp';
+// ========== RSVP API ==========
+// Use localhost when opening the HTML file directly, otherwise use the same host as server.js.
+const apiEndpoint = window.location.protocol === 'file:'
+  ? 'http://localhost:3000/api/rsvp'
+  : `${window.location.origin}/api/rsvp`;
 
 async function submitToBackend(rsvpData) {
   const response = await fetch(apiEndpoint, {
@@ -581,32 +583,6 @@ async function submitToBackend(rsvpData) {
   return response.json();
 }
 
-// Format RSVP data as GitHub issue body
-function createIssueBody(data) {
-  let body = `## RSVP Details\n\n`;
-  body += `**Name:** ${data.name}\n`;
-  body += `**Attendance:** ${data.attendance}\n`;
-
-  if (data.attendance === 'Accepted') {
-    if (data.email) body += `**Email:** ${data.email}\n`;
-    if (data.phone) body += `**Phone:** ${data.phone}\n`;
-    body += `**Has Guests:** ${data.hasGuests}\n`;
-
-    if (data.hasGuests === 'Yes' && data.guests && data.guests.length > 0) {
-      body += `\n### Guests\n`;
-      data.guests.forEach((guest, i) => {
-        body += `${i + 1}. ${guest.name} (${guest.relationship})\n`;
-      });
-    }
-
-    if (data.dietary) body += `\n**Dietary Requirements:** ${data.dietary}\n`;
-  }
-
-  if (data.message) body += `\n**Message:** ${data.message}\n`;
-
-  body += `\n---\n*Submitted via wedding website*`;
-  return body;
-}
 let pendingRsvpData = null; // Store form data for submission after confirmation
 
 const petalColors=['#EEC219','#c9a414','#f5d567','#a8292d','#fdf8f0'];
