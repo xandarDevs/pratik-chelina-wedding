@@ -563,15 +563,14 @@
 <script>
 // ========== RSVP API ==========
 // Use localhost when opening the HTML file directly, otherwise use the same host as server.js.
-const apiEndpoint = window.location.protocol === 'file:'
-  ? 'http://localhost:3000/api/rsvp'
-  : `${window.location.origin}/api/rsvp`;
+const apiEndpoint = 'https://script.google.com/macros/s/AKfycby7jfoeRPavFQ71B-h356cDiXCyyOY6vPmbRO2kGmvx6jHeIe8THcr_MfltK2WUMtJF/exec'
 
 async function submitToBackend(rsvpData) {
   const response = await fetch(apiEndpoint, {
     method: 'POST',
+    redirect: 'follow',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'text/plain;charset=utf-8'
     },
     body: JSON.stringify(rsvpData)
   });
