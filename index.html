@@ -21,11 +21,32 @@
     100%{transform:translateY(110vh) rotate(720deg);opacity:0}
   }
 
-  nav{position:fixed;top:0;width:100%;z-index:100;background:rgba(126,18,21,.85);backdrop-filter:blur(8px);border-bottom:1px solid rgba(238,194,25,.2);padding:14px 2rem;display:flex;justify-content:center;gap:2rem;transition:background .45s ease}
+  nav{position:fixed;top:0;width:100%;z-index:100;background:rgba(126,18,21,.85);backdrop-filter:blur(8px);border-bottom:1px solid rgba(238,194,25,.2);padding:14px 2rem;transition:background .45s ease}
   nav.nav-dk{background:rgba(90,13,15,.88)}
+  .nav-inner{display:flex;justify-content:center;gap:2rem;align-items:center}
+  .nav-links{display:flex;justify-content:center;gap:2rem;align-items:center}
   nav a{color:var(--gold);text-decoration:none;font-size:14px;letter-spacing:3px;text-transform:uppercase;opacity:.85;transition:opacity .2s}
   nav a:hover{opacity:1}
   nav a.active{opacity:1;border-bottom:1px solid var(--gold)}
+  .nav-toggle{display:none;background:transparent;color:var(--gold);border:1px solid rgba(238,194,25,.35);border-radius:3px;width:44px;height:40px;align-items:center;justify-content:center;cursor:pointer}
+  .nav-toggle-lines,.nav-toggle-lines::before,.nav-toggle-lines::after{display:block;width:20px;height:1px;background:var(--gold);transition:transform .25s ease,opacity .25s ease}
+  .nav-toggle-lines{position:relative}
+  .nav-toggle-lines::before,.nav-toggle-lines::after{content:'';position:absolute;left:0}
+  .nav-toggle-lines::before{top:-7px}
+  .nav-toggle-lines::after{top:7px}
+  nav.open .nav-toggle-lines{background:transparent}
+  nav.open .nav-toggle-lines::before{transform:translateY(7px) rotate(45deg)}
+  nav.open .nav-toggle-lines::after{transform:translateY(-7px) rotate(-45deg)}
+  @media(max-width:760px){
+    html{scroll-padding-top:68px}
+    nav{padding:.75rem 1rem}
+    .nav-inner{justify-content:flex-end}
+    .nav-toggle{display:flex}
+    .nav-links{position:absolute;left:1rem;right:1rem;top:calc(100% + .55rem);display:grid;grid-template-columns:1fr;background:rgba(90,13,15,.96);border:1px solid rgba(238,194,25,.28);border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.32);padding:.35rem;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .22s ease,transform .22s ease}
+    nav.open .nav-links{opacity:1;pointer-events:auto;transform:translateY(0)}
+    nav a{display:block;padding:.9rem 1rem;text-align:center;border-radius:3px;font-size:13px;letter-spacing:2px}
+    nav a.active{border-bottom:none;background:rgba(238,194,25,.1)}
+  }
 
   section{
     min-height:100vh;
@@ -289,13 +310,20 @@
 <a id="rsvp-fab" href="#rsvp"><span class="fab-dot"></span>RSVP</a>
 
 <nav>
-  <a href="#story">Our Story</a>
-  <a href="#events">Events</a>
-  <a href="#schedule">Schedule</a>
-  <a href="#gallery">Gallery</a>
-  <a href="#rsvp">RSVP</a>
-  <a href="#registry">Registry</a>
-  <a href="#location">Venue</a>
+  <div class="nav-inner">
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <span class="nav-toggle-lines" aria-hidden="true"></span>
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="#story">Our Story</a>
+      <a href="#events">Events</a>
+      <a href="#schedule">Schedule</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#rsvp">RSVP</a>
+      <a href="#registry">Registry</a>
+      <a href="#location">Venue</a>
+    </div>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -680,6 +708,33 @@ for(let i=0;i<38;i++) mkPetal();
   }
   window.addEventListener('scroll',updateNav,{passive:true});
   updateNav();
+})();
+
+// Mobile menu toggle
+(function(){
+  const nav=document.querySelector('nav');
+  const toggle=nav.querySelector('.nav-toggle');
+  const navLinks=Array.from(nav.querySelectorAll('.nav-links a'));
+  function setMenu(open){
+    nav.classList.toggle('open',open);
+    toggle.setAttribute('aria-expanded',open?'true':'false');
+    toggle.setAttribute('aria-label',open?'Close menu':'Open menu');
+  }
+  toggle.addEventListener('click',function(){
+    setMenu(!nav.classList.contains('open'));
+  });
+  navLinks.forEach(function(link){
+    link.addEventListener('click',function(){setMenu(false);});
+  });
+  document.addEventListener('click',function(event){
+    if(!nav.contains(event.target))setMenu(false);
+  });
+  document.addEventListener('keydown',function(event){
+    if(event.key==='Escape')setMenu(false);
+  });
+  window.addEventListener('resize',function(){
+    if(window.innerWidth>760)setMenu(false);
+  });
 })();
 
 // Slideshow-style reveal as each snapped page enters view
