@@ -854,6 +854,40 @@ for(let i=0;i<38;i++) mkPetal();
   slides.forEach(function(section){slideObserver.observe(section);});
 })();
 
+// RSVP exception: clicking any #rsvp link immediately reveals the section content
+// and deterministically scrolls to the top of the section, bypassing the
+// IntersectionObserver timing window that can leave the form invisible on mobile.
+// A second scroll is applied after the transition settles to beat browser
+// scroll-restoration race conditions (notably mobile Safari / Chrome).
+(function(){
+  var rsvp=document.getElementById('rsvp');
+  if(!rsvp)return;
+  // Cache the nav element; its height is constant across the session
+  var navEl=document.querySelector('nav');
+  // Delay long enough for smooth-scroll and CSS transitions (~0.8 s) to finish
+  // before we pin the position, beating any mobile scroll-restoration race.
+  var SETTLE_MS=600;
+  function scrollToRsvp(e){
+    e.preventDefault();
+    // Immediately mark the section visible so content never flickers at opacity:0
+    rsvp.classList.add('slide-visible');
+    // Calculate target: top of section minus the fixed nav bar height
+    var navH=navEl?navEl.offsetHeight:0;
+    var targetTop=rsvp.getBoundingClientRect().top+window.scrollY-navH;
+    window.scrollTo({top:targetTop,behavior:'smooth'});
+    // Re-apply after transitions settle to beat any scroll-restoration or
+    // repaint race on mobile browsers
+    setTimeout(function(){
+      var freshTop=rsvp.getBoundingClientRect().top+window.scrollY-navH;
+      window.scrollTo({top:freshTop,behavior:'instant'});
+      rsvp.classList.add('slide-visible');
+    },SETTLE_MS);
+  }
+  document.querySelectorAll('a[href="#rsvp"]').forEach(function(link){
+    link.addEventListener('click',scrollToRsvp);
+  });
+})();
+
 // Hide RSVP FAB when RSVP section is visible
 const fab=document.getElementById('rsvp-fab');
 const rsvpSection=document.getElementById('rsvp');
