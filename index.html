@@ -862,22 +862,26 @@ for(let i=0;i<38;i++) mkPetal();
 (function(){
   var rsvp=document.getElementById('rsvp');
   if(!rsvp)return;
+  // Cache the nav element; its height is constant across the session
+  var navEl=document.querySelector('nav');
+  // Delay long enough for smooth-scroll and CSS transitions (~0.8 s) to finish
+  // before we pin the position, beating any mobile scroll-restoration race.
+  var SETTLE_MS=600;
   function scrollToRsvp(e){
     e.preventDefault();
     // Immediately mark the section visible so content never flickers at opacity:0
     rsvp.classList.add('slide-visible');
     // Calculate target: top of section minus the fixed nav bar height
-    var navEl=document.querySelector('nav');
     var navH=navEl?navEl.offsetHeight:0;
     var targetTop=rsvp.getBoundingClientRect().top+window.scrollY-navH;
     window.scrollTo({top:targetTop,behavior:'smooth'});
-    // Re-apply after transition settles (~600 ms) to beat any scroll-restoration
-    // or repaint race on mobile browsers
+    // Re-apply after transitions settle to beat any scroll-restoration or
+    // repaint race on mobile browsers
     setTimeout(function(){
       var freshTop=rsvp.getBoundingClientRect().top+window.scrollY-navH;
       window.scrollTo({top:freshTop,behavior:'instant'});
       rsvp.classList.add('slide-visible');
-    },600);
+    },SETTLE_MS);
   }
   document.querySelectorAll('a[href="#rsvp"]').forEach(function(link){
     link.addEventListener('click',scrollToRsvp);
