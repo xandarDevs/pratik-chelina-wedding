@@ -833,9 +833,17 @@ for(let i=0;i<38;i++) mkPetal();
   const slides=Array.from(document.querySelectorAll('section'));
   const slideObserver=new IntersectionObserver(function(entries){
     entries.forEach(function(entry){
-      entry.target.classList.toggle('slide-visible',entry.isIntersecting);
+      // Add slide-visible once 45% of the section is visible.
+      // Only remove it when the section is completely out of view (ratio=0).
+      // This prevents the mobile virtual keyboard from shrinking the viewport
+      // and causing the section to lose its visible state mid-interaction.
+      if(entry.isIntersecting&&entry.intersectionRatio>=0.45){
+        entry.target.classList.add('slide-visible');
+      }else if(!entry.isIntersecting){
+        entry.target.classList.remove('slide-visible');
+      }
     });
-  },{threshold:0.45});
+  },{threshold:[0,0.45]});
   slides.forEach(function(section){slideObserver.observe(section);});
 })();
 
