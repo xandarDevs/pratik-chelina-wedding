@@ -10,7 +10,7 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{--burg:#7E1215;--burg-dk:#5a0d0f;--burg-lt:#a8292d;--gold:#EEC219;--gold-lt:#f5d567;--gold-dk:#c9a414;--cream:#fdf8f0;--text:#2a0c0d}
-  html{scroll-behavior:smooth;scroll-snap-type:y mandatory;scroll-padding-top:0}
+  html{scroll-behavior:smooth;scroll-padding-top:0}
   body{background:var(--burg);color:var(--cream);font-family:'Lato',sans-serif;font-weight:300;overflow-x:hidden}
 
   #petals{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;overflow:hidden}
@@ -56,8 +56,6 @@
     align-items:center;
     justify-content:center;
     padding:6rem 1.5rem 4rem;
-    scroll-snap-align:start;
-    scroll-snap-stop:always;
     position:relative;
   }
   section > :not(.mandala-corner):not(.mandala-side){
@@ -315,7 +313,7 @@
   .vine-border.right{right:0;transform:scaleX(-1)}
   @media(max-width:700px){.vine-border{display:none}}
 
-  footer{background:var(--burg-dk);border-top:1px solid rgba(238,194,25,.1);text-align:center;padding:8rem 1.5rem;font-size:15px;letter-spacing:2px;color:rgba(253,248,240,.35);text-transform:uppercase;position:relative;overflow:clip;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;scroll-snap-align:start;scroll-snap-stop:always}
+  footer{background:var(--burg-dk);border-top:1px solid rgba(238,194,25,.1);text-align:center;padding:8rem 1.5rem;font-size:15px;letter-spacing:2px;color:rgba(253,248,240,.35);text-transform:uppercase;position:relative;overflow:clip;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center}
   footer > :not(.mandala-corner){position:relative;z-index:3}
   footer .footer-label{font-size:14px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);opacity:.65;margin-bottom:.75rem}
   footer .footer-title{font-family:'Playfair Display',serif;font-size:clamp(34px,6vw,58px);color:var(--gold);font-weight:400;margin-bottom:1.25rem;letter-spacing:0;text-transform:none}
