@@ -46,6 +46,9 @@
     nav.open .nav-links{opacity:1;pointer-events:auto;transform:translateY(0)}
     nav a{display:block;padding:.9rem 1rem;text-align:center;border-radius:3px;font-size:13px;letter-spacing:2px}
     nav a.active{border-bottom:none;background:rgba(238,194,25,.1)}
+    /* On mobile the RSVP form is tall, so anchor content at the top of the section
+       (instead of vertically centered) so the form is visible on arrival */
+    #rsvp{justify-content:flex-start;padding-top:5rem}
   }
 
   section{
@@ -833,17 +836,21 @@ for(let i=0;i<38;i++) mkPetal();
   const slides=Array.from(document.querySelectorAll('section'));
   const slideObserver=new IntersectionObserver(function(entries){
     entries.forEach(function(entry){
-      // Add slide-visible once 45% of the section is visible.
+      // Add slide-visible once 45% of the section is visible, OR once the section
+      // covers 40% of the viewport (handles tall sections like RSVP on mobile that
+      // can never reach a 45% intersection ratio relative to their own height).
       // Only remove it when the section is completely out of view (ratio=0).
       // This prevents the mobile virtual keyboard from shrinking the viewport
       // and causing the section to lose its visible state mid-interaction.
-      if(entry.isIntersecting&&entry.intersectionRatio>=0.45){
+      var viewportHeight=window.innerHeight||document.documentElement.clientHeight;
+      var coversViewport=entry.intersectionRect.height/viewportHeight>=0.4;
+      if(entry.isIntersecting&&(entry.intersectionRatio>=0.45||coversViewport)){
         entry.target.classList.add('slide-visible');
       }else if(!entry.isIntersecting){
         entry.target.classList.remove('slide-visible');
       }
     });
-  },{threshold:[0,0.45]});
+  },{threshold:[0,0.15,0.45]});
   slides.forEach(function(section){slideObserver.observe(section);});
 })();
 
