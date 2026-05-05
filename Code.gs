@@ -219,23 +219,23 @@ function sendThankYouSms(data) {
     };
   }
 
-  const scriptProperties = PropertiesService.getScriptProperties();
-  const accountSid = scriptProperties.getProperty('TWILIO_ACCOUNT_SID');
-  const authToken = scriptProperties.getProperty('TWILIO_AUTH_TOKEN');
-  const fromNumber = scriptProperties.getProperty('TWILIO_FROM_NUMBER');
-
-  if (!accountSid || !authToken || !fromNumber) {
-    return {
-      status: 'Skipped - Twilio not configured',
-      error: 'Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER in Script Properties'
-    };
-  }
-
-  const accepting = data.attendance === 'Accepted';
-  const body = accepting ? buildAcceptedSms(data) : buildDeclinedSms(data);
-  const toNumber = normalizePhone(data.phone);
-
   try {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const accountSid = scriptProperties.getProperty('TWILIO_ACCOUNT_SID');
+    const authToken = scriptProperties.getProperty('TWILIO_AUTH_TOKEN');
+    const fromNumber = scriptProperties.getProperty('TWILIO_FROM_NUMBER');
+
+    if (!accountSid || !authToken || !fromNumber) {
+      return {
+        status: 'Skipped - Twilio not configured',
+        error: 'Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER in Script Properties'
+      };
+    }
+
+    const accepting = data.attendance === 'Accepted';
+    const body = accepting ? buildAcceptedSms(data) : buildDeclinedSms(data);
+    const toNumber = normalizePhone(data.phone);
+
     const url = 'https://api.twilio.com/2010-04-01/Accounts/' + accountSid + '/Messages.json';
 
     const response = UrlFetchApp.fetch(url, {
