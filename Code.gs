@@ -1,14 +1,24 @@
 const SHEET_NAME = 'RSVPs';
+const MANDALA_FILE_ID = '19It10MzbdM5zgUzj1eBd86Kaqq82ljd1';
+const MANDALA_CONTENT_ID = 'weddingMandala';
+const MAP_IMAGE_FILE_ID = '';
+const MAP_CONTENT_ID = 'venueMap';
+const GOOGLE_MAPS_URL = 'https://www.google.ca/maps/place/Speranza+Banquet+Hall/@43.7494212,-79.6793255,357m/data=!3m1!1e3!4m6!3m5!1s0x882b3cf16e13928f:0x5e5acc23452f3e69!8m2!3d43.7493559!4d-79.6781781!16s%2Fg%2F11b5wkxfs2?entry=ttu&g_ep=EgoyMDI2MDQyOS4wIKXMDSoASAFQAw%3D%3D';
+const EVENT_TITLE = 'Pratik & Chelina Wedding Reception';
+const EVENT_LOCATION = 'The King Hall, Speranza Restaurant & Banquet Hall, 510 Deerhurst Dr., Brampton, ON';
+const EVENT_START_UTC = '20260703T220000Z';
+const EVENT_END_UTC = '20260704T030000Z';
 
 function doPost(e) {
   try {
     const data = parseRsvpPayload(e);
     validateRsvp(data);
-    appendRsvpToSheet(data);
-    sendThankYouEmail(data);
+    const emailResult = sendThankYouEmail(data);
+    appendRsvpToSheet(data, emailResult);
 
     return jsonResponse({
-      success: true
+      success: true,
+      email: emailResult
     });
   } catch (error) {
     console.error(error);
@@ -34,7 +44,7 @@ function validateRsvp(data) {
   }
 }
 
-function appendRsvpToSheet(data) {
+function appendRsvpToSheet(data, emailResult) {
   const sheet = getRsvpSheet();
   const guests = Array.isArray(data.guests) ? data.guests : [];
 
@@ -48,7 +58,9 @@ function appendRsvpToSheet(data) {
     data.guestCount || '0',
     formatGuestList(guests),
     data.dietary || '',
-    data.message || ''
+    data.message || '',
+    emailResult.status,
+    emailResult.error || ''
   ]);
 }
 
@@ -60,19 +72,36 @@ function getRsvpSheet() {
     sheet = spreadsheet.insertSheet(SHEET_NAME);
   }
 
+  const headers = [
+    'Submitted At',
+    'Name',
+    'Attendance',
+    'Email',
+    'Phone',
+    'Has Guests',
+    'Guest Count',
+    'Guests',
+    'Dietary Requirements',
+    'Message',
+    'Email Status',
+    'Email Error'
+  ];
+
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow([
-      'Submitted At',
-      'Name',
-      'Attendance',
-      'Email',
-      'Phone',
-      'Has Guests',
-      'Guest Count',
-      'Guests',
-      'Dietary Requirements',
-      'Message'
-    ]);
+    sheet.appendRow(headers);
+  } else {
+    const existingHeaders = sheet
+      .getRange(1, 1, 1, sheet.getLastColumn())
+      .getValues()[0];
+    const missingHeaders = headers.filter(function(header) {
+      return existingHeaders.indexOf(header) === -1;
+    });
+
+    if (missingHeaders.length) {
+      sheet
+        .getRange(1, existingHeaders.length + 1, 1, missingHeaders.length)
+        .setValues([missingHeaders]);
+    }
   }
 
   return sheet;
@@ -80,7 +109,10 @@ function getRsvpSheet() {
 
 function sendThankYouEmail(data) {
   if (!data.email) {
-    return;
+    return {
+      status: 'Skipped - no email address',
+      error: ''
+    };
   }
 
   const accepting = data.attendance === 'Accepted';
@@ -91,12 +123,149 @@ function sendThankYouEmail(data) {
   const body = accepting
     ? buildAcceptedEmail(data)
     : buildDeclinedEmail(data);
+  const mandalaBlob = getMandalaBlob();
+  const mapBlob = getMapBlob();
+  const htmlBody = accepting
+    ? buildAcceptedEmailHtml(data, Boolean(mandalaBlob), Boolean(mapBlob))
+    : buildDeclinedEmailHtml(data, Boolean(mandalaBlob));
 
-  MailApp.sendEmail({
-    to: data.email,
-    subject: subject,
-    body: body
+  try {
+    const emailOptions = {
+      to: data.email,
+      subject: subject,
+      body: body,
+      htmlBody: htmlBody,
+      name: 'Pratik & Chelina Wedding'
+    };
+
+    if (mandalaBlob) {
+      emailOptions.inlineImages = {};
+      emailOptions.inlineImages[MANDALA_CONTENT_ID] = mandalaBlob;
+    }
+
+    if (mapBlob) {
+      if (!emailOptions.inlineImages) {
+        emailOptions.inlineImages = {};
+      }
+      emailOptions.inlineImages[MAP_CONTENT_ID] = mapBlob;
+    }
+
+    if (accepting) {
+      emailOptions.attachments = [buildCalendarInvite()];
+    }
+
+    MailApp.sendEmail(emailOptions);
+
+    return {
+      status: 'Sent',
+      error: ''
+    };
+  } catch (error) {
+    console.error('Failed to send thank-you email:', error);
+
+    return {
+      status: 'Failed',
+      error: error.message || String(error)
+    };
+  }
+}
+
+function testThankYouEmail() {
+  const testEmail = Session.getEffectiveUser().getEmail();
+
+  if (!testEmail) {
+    throw new Error('Could not detect your email address. Replace testEmail with your email address and run again.');
+  }
+
+  const result = sendThankYouEmail({
+    name: 'Test Guest',
+    attendance: 'Accepted',
+    email: testEmail,
+    hasGuests: 'Yes',
+    guestCount: '2',
+    guests: [
+      {
+        name: 'Guest One',
+        relationship: 'Friend'
+      },
+      {
+        name: 'Guest Two',
+        relationship: 'Family'
+      }
+    ],
+    dietary: '',
+    message: ''
   });
+
+  console.log(result);
+}
+
+function addMissingEmailColumns() {
+  getRsvpSheet();
+}
+
+function getMandalaBlob() {
+  if (!MANDALA_FILE_ID) {
+    return null;
+  }
+
+  try {
+    return DriveApp
+      .getFileById(MANDALA_FILE_ID)
+      .getBlob()
+      .setName('wedding-mandala.png');
+  } catch (error) {
+    console.error('Failed to load email mandala:', error);
+    return null;
+  }
+}
+
+function getMapBlob() {
+  if (!MAP_IMAGE_FILE_ID) {
+    return null;
+  }
+
+  try {
+    return DriveApp
+      .getFileById(MAP_IMAGE_FILE_ID)
+      .getBlob()
+      .setName('venue-map.png');
+  } catch (error) {
+    console.error('Failed to load venue map image:', error);
+    return null;
+  }
+}
+
+function buildCalendarInvite() {
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Pratik and Chelina Wedding//RSVP//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    'UID:pratik-chelina-wedding-reception-20260703@speranza',
+    'DTSTAMP:' + Utilities.formatDate(new Date(), 'UTC', "yyyyMMdd'T'HHmmss'Z'"),
+    'DTSTART:' + EVENT_START_UTC,
+    'DTEND:' + EVENT_END_UTC,
+    'SUMMARY:' + escapeIcsText(EVENT_TITLE),
+    'LOCATION:' + escapeIcsText(EVENT_LOCATION),
+    'DESCRIPTION:' + escapeIcsText('Wedding reception for Pratik and Chelina. Open in Google Maps: ' + GOOGLE_MAPS_URL),
+    'URL:' + GOOGLE_MAPS_URL,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  return Utilities
+    .newBlob(ics, 'text/calendar', 'pratik-chelina-wedding-reception.ics');
+}
+
+function escapeIcsText(value) {
+  return String(value || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r?\n/g, '\\n');
 }
 
 function buildAcceptedEmail(data) {
@@ -142,6 +311,89 @@ function buildDeclinedEmail(data) {
     'With love,',
     'The families of Pratik & Chelina'
   ].join('\n');
+}
+
+function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
+  const guests = Array.isArray(data.guests) ? data.guests : [];
+  const guestList = guests.length
+    ? formatGuestListHtml(guests)
+    : '<p style="margin:0;color:#fdf8f0;">No additional guests listed.</p>';
+  const mapImageHtml = hasMapImage
+    ? '<a href="' + GOOGLE_MAPS_URL + '" target="_blank" style="display:block;margin:18px auto 0;text-decoration:none;"><img src="cid:' + MAP_CONTENT_ID + '" alt="Map to Speranza Restaurant and Banquet Hall" width="420" style="display:block;width:100%;max-width:420px;height:auto;margin:0 auto;border:1px solid rgba(238,194,25,.45);border-radius:4px;"></a>'
+    : '';
+
+  return emailShell([
+    '<p style="margin:0 0 18px;color:#fdf8f0;font-size:18px;">Dear ' + escapeHtml(data.name) + ',</p>',
+    '<p style="margin:0 0 22px;line-height:1.7;color:#fdf8f0;font-size:18px;">Thank you for your RSVP. We are so happy that you will be joining us to celebrate the wedding of Pratik and Chelina.</p>',
+    '<div style="margin:24px 0;padding:22px 18px;border-top:1px solid rgba(238,194,25,.45);border-bottom:1px solid rgba(238,194,25,.45);text-align:center;">',
+    '<p style="margin:0 0 10px;color:#EEC219;font-size:14px;letter-spacing:3px;text-transform:uppercase;">Wedding Reception</p>',
+    '<p style="margin:0 0 8px;color:#f5d567;font-size:26px;font-family:Georgia,serif;">Friday, July 3rd, 2026</p>',
+    '<p style="margin:0 0 14px;color:#fdf8f0;font-size:18px;">From 6:00 PM to 11:00 PM</p>',
+    '<p style="margin:0;color:#fdf8f0;line-height:1.6;font-size:18px;">The King Hall<br>Speranza Restaurant &amp; Banquet Hall<br>510 Deerhurst Dr., Brampton, ON</p>',
+    '<a href="' + GOOGLE_MAPS_URL + '" target="_blank" style="display:inline-block;margin-top:18px;padding:11px 18px;background:#EEC219;color:#5a0d0f;text-decoration:none;border-radius:3px;font-size:14px;letter-spacing:2px;text-transform:uppercase;">Open in Google Maps</a>',
+    mapImageHtml,
+    '</div>',
+    '<p style="margin:0 0 12px;line-height:1.7;color:#fdf8f0;font-size:18px;">We have noted that you will be attending with the following guest(s):</p>',
+    '<div style="margin:0 0 22px;padding:16px 18px;background:rgba(253,248,240,.06);border:1px solid rgba(238,194,25,.22);">' + guestList + '</div>',
+    '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">As seating is limited, please contact the family of the bride or groom if you need to make any changes to the guests listed above.</p>',
+    '<p style="margin:0;line-height:1.7;color:#fdf8f0;font-size:18px;">As a gentle reminder, your presence and blessings are the greatest gift; the newlyweds kindly request no boxed gifts.</p>'
+  ].join(''), hasMandala);
+}
+
+function buildDeclinedEmailHtml(data, hasMandala) {
+  return emailShell([
+    '<p style="margin:0 0 18px;color:#fdf8f0;font-size:18px;">Dear ' + escapeHtml(data.name) + ',</p>',
+    '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">Thank you for your RSVP. We are sorry that you will not be able to join us, but we truly appreciate you letting us know.</p>',
+    '<p style="margin:0;line-height:1.7;color:#fdf8f0;font-size:18px;">Your love, blessings, and good wishes mean so much to Pratik and Chelina as they begin this new chapter together.</p>'
+  ].join(''), hasMandala);
+}
+
+function emailShell(content, hasMandala) {
+  const topMandalaHtml = hasMandala
+    ? '<img src="cid:' + MANDALA_CONTENT_ID + '" alt="" width="160" style="display:block;width:160px;max-width:160px;height:auto;margin:0 auto 14px;">'
+    : '<div style="color:#EEC219;font-size:24px;line-height:1;margin-bottom:12px;">&#10087;</div>';
+  const bottomMandalaHtml = hasMandala
+    ? '<img src="cid:' + MANDALA_CONTENT_ID + '" alt="" width="160" style="display:block;width:160px;max-width:160px;height:auto;margin:0 auto;">'
+    : '<div style="color:#EEC219;font-size:24px;line-height:1;">&#10087;</div>';
+
+  return [
+    '<div style="margin:0;padding:28px 16px;background:#7E1215;color:#fdf8f0;font-family:Arial,Helvetica,sans-serif;">',
+    '<div style="max-width:640px;margin:0 auto;background:#5a0d0f;border:1px solid #EEC219;border-radius:6px;padding:10px;">',
+    '<div style="border:1px solid rgba(238,194,25,.38);border-radius:4px;padding:28px 22px;">',
+    '<div style="text-align:center;margin:0 0 26px;">',
+    topMandalaHtml,
+    '<div style="color:#EEC219;font-family:\'Playfair Display\',Georgia,serif;font-size:48px;line-height:1.1;">Pratik &amp; Chelina</div>',
+    '<div style="margin:16px auto 0;text-align:center;color:#EEC219;font-size:16px;letter-spacing:5px;">&#10022; &nbsp; &#10022; &nbsp; &#10022;</div>',
+    '<div style="width:150px;height:1px;background:linear-gradient(90deg,transparent,#EEC219,transparent);margin:16px auto 0;"></div>',
+    '</div>',
+    content,
+    '<div style="width:150px;height:1px;background:linear-gradient(90deg,transparent,#EEC219,transparent);margin:28px auto 0;"></div>',
+    '<p style="margin:30px 0 0;line-height:1.7;color:#fdf8f0;font-size:18px;">With love,<br>The families of Pratik &amp; Chelina</p>',
+    '<div style="text-align:center;margin-top:22px;">' + bottomMandalaHtml + '</div>',
+    '</div>',
+    '</div>',
+    '</div>'
+  ].join('');
+}
+
+function formatGuestListHtml(guests) {
+  const items = guests.map(function(guest) {
+    const name = escapeHtml(guest.name || 'Guest');
+    const relationship = guest.relationship ? ' <span style="color:#f5d567;">(' + escapeHtml(guest.relationship) + ')</span>' : '';
+
+    return '<li style="margin:0 0 8px;color:#fdf8f0;font-size:18px;">' + name + relationship + '</li>';
+  });
+
+  return '<ol style="margin:0;padding-left:22px;">' + items.join('') + '</ol>';
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function formatGuestList(guests) {
