@@ -1,9 +1,5 @@
 const SHEET_NAME = 'RSVPs';
 
-// Twilio credentials — store these in Apps Script > Project Settings > Script properties:
-//   TWILIO_ACCOUNT_SID   your Twilio Account SID
-//   TWILIO_AUTH_TOKEN    your Twilio Auth Token
-//   TWILIO_FROM_NUMBER   your Twilio phone number in E.164 format (e.g. +14155550100)
 const MANDALA_FILE_ID = '19It10MzbdM5zgUzj1eBd86Kaqq82ljd1';
 const MANDALA_CONTENT_ID = 'weddingMandala';
 const MAP_IMAGE_FILE_ID = '';
@@ -19,13 +15,11 @@ function doPost(e) {
     const data = parseRsvpPayload(e);
     validateRsvp(data);
     const emailResult = sendThankYouEmail(data);
-    const smsResult = sendThankYouSms(data);
-    appendRsvpToSheet(data, emailResult, smsResult);
+    appendRsvpToSheet(data, emailResult);
 
     return jsonResponse({
       success: true,
-      email: emailResult,
-      sms: smsResult
+      email: emailResult
     });
   } catch (error) {
     console.error(error);
@@ -49,9 +43,13 @@ function validateRsvp(data) {
   if (!data.name || !data.attendance) {
     throw new Error('Missing required RSVP fields');
   }
+
+  if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(data.email))) {
+    throw new Error('A valid email address is required');
+  }
 }
 
-function appendRsvpToSheet(data, emailResult, smsResult) {
+function appendRsvpToSheet(data, emailResult) {
   const sheet = getRsvpSheet();
   const guests = Array.isArray(data.guests) ? data.guests : [];
 
@@ -67,9 +65,7 @@ function appendRsvpToSheet(data, emailResult, smsResult) {
     data.dietary || '',
     data.message || '',
     emailResult.status,
-    emailResult.error || '',
-    smsResult.status,
-    smsResult.error || ''
+    emailResult.error || ''
   ]);
 }
 
@@ -93,9 +89,7 @@ function getRsvpSheet() {
     'Dietary Requirements',
     'Message',
     'Email Status',
-    'Email Error',
-    'SMS Status',
-    'SMS Error'
+    'Email Error'
   ];
 
   if (sheet.getLastRow() === 0) {
@@ -206,123 +200,6 @@ function testThankYouEmail() {
     ],
     dietary: '',
     message: ''
-  });
-
-  console.log(result);
-}
-
-function sendThankYouSms(data) {
-  if (!data.phone) {
-    return {
-      status: 'Skipped - no phone number',
-      error: ''
-    };
-  }
-
-  try {
-    const scriptProperties = PropertiesService.getScriptProperties();
-    const accountSid = scriptProperties.getProperty('TWILIO_ACCOUNT_SID');
-    const authToken = scriptProperties.getProperty('TWILIO_AUTH_TOKEN');
-    const fromNumber = scriptProperties.getProperty('TWILIO_FROM_NUMBER');
-
-    if (!accountSid || !authToken || !fromNumber) {
-      return {
-        status: 'Skipped - Twilio not configured',
-        error: 'Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER in Script Properties'
-      };
-    }
-
-    const accepting = data.attendance === 'Accepted';
-    const body = accepting ? buildAcceptedSms(data) : buildDeclinedSms(data);
-    const toNumber = normalizePhone(data.phone);
-
-    const url = 'https://api.twilio.com/2010-04-01/Accounts/' + accountSid + '/Messages.json';
-
-    const response = UrlFetchApp.fetch(url, {
-      method: 'post',
-      payload: {
-        To: toNumber,
-        From: fromNumber,
-        Body: body
-      },
-      headers: {
-        Authorization: 'Basic ' + Utilities.base64Encode(accountSid + ':' + authToken)
-      },
-      muteHttpExceptions: true
-    });
-
-    const status = response.getResponseCode();
-
-    if (status === 201) {
-      return {
-        status: 'Sent',
-        error: ''
-      };
-    }
-
-    const responseBody = response.getContentText();
-    console.error('Twilio returned HTTP ' + status + ': ' + responseBody);
-
-    return {
-      status: 'Failed',
-      error: 'HTTP ' + status + ': ' + responseBody
-    };
-  } catch (error) {
-    console.error('Failed to send thank-you SMS:', error);
-
-    return {
-      status: 'Failed',
-      error: error.message || String(error)
-    };
-  }
-}
-
-function normalizePhone(phone) {
-  const digits = String(phone || '').replace(/[^\d+]/g, '');
-
-  if (digits.startsWith('+')) {
-    return digits;
-  }
-
-  if (digits.length === 10) {
-    return '+1' + digits;
-  }
-
-  if (digits.length === 11 && digits.startsWith('1')) {
-    return '+' + digits;
-  }
-
-  return digits;
-}
-
-function buildAcceptedSms(data) {
-  return (
-    'Hi ' + data.name + '! Thank you for your RSVP. ' +
-    'We are so happy you will be joining us to celebrate the wedding of Pratik & Chelina. ' +
-    'The reception is on Friday, July 3rd 2026 from 6–11 PM at ' +
-    'Speranza Restaurant & Banquet Hall, 510 Deerhurst Dr., Brampton, ON. ' +
-    'We can\'t wait to celebrate with you!'
-  );
-}
-
-function buildDeclinedSms(data) {
-  return (
-    'Hi ' + data.name + '! Thank you for letting us know. ' +
-    'We are sorry you won\'t be able to join us, but your love and good wishes mean so much to Pratik & Chelina.'
-  );
-}
-
-function testThankYouSms() {
-  const testPhone = PropertiesService.getScriptProperties().getProperty('TEST_PHONE_NUMBER');
-
-  if (!testPhone) {
-    throw new Error('Set TEST_PHONE_NUMBER in Script Properties and run again.');
-  }
-
-  const result = sendThankYouSms({
-    name: 'Test Guest',
-    attendance: 'Accepted',
-    phone: testPhone
   });
 
   console.log(result);
