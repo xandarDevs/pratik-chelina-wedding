@@ -585,16 +585,16 @@
           <label><input type="radio" name="attend" value="no" onclick="toggleAttendance(this)"/> Regretfully declines</label>
         </div>
       </div>
+      <div class="form-row">
+        <label>Email Address <span style="color:var(--gold-lt);opacity:1">*</span></label>
+        <input type="email" id="email" placeholder="your@email.com" required/>
+      </div>
+      <p id="contact-hint" style="font-size:13px;color:rgba(253,248,240,.4);letter-spacing:1px;margin-top:-.5rem;margin-bottom:1.25rem"><span style="color:var(--gold-lt)">*</span> Please provide an email address for wedding updates</p>
       <div id="accept-fields">
       <div class="form-row">
-        <label>Email Address</label>
-        <input type="email" id="email" placeholder="your@email.com"/>
-      </div>
-      <div class="form-row">
-        <label>Phone Number <span style="color:var(--gold-lt);opacity:.7;font-size:12px;letter-spacing:1px">(Recommended)</span></label>
+        <label>Phone Number <span style="color:var(--gold-lt);opacity:.7;font-size:12px;letter-spacing:1px">(Optional)</span></label>
         <input type="tel" id="phone" placeholder="+1 (xxx) xxx-xxxx"/>
       </div>
-      <p id="contact-hint" style="font-size:13px;color:rgba(253,248,240,.4);letter-spacing:1px;margin-top:-.5rem;margin-bottom:1.25rem"><span style="color:var(--gold-lt)">*</span> Please provide at least an email or phone number</p>
       <!-- <div class="form-row-slide" id="ceremony-row">
         <label>Ceremony</label>
         <div class="checkbox-row">
@@ -632,12 +632,12 @@
     <div class="success-msg" id="success">
       <div style="font-size:28px;color:var(--gold);margin-bottom:.75rem">✦</div>
       Thank you! We can't wait to celebrate with you.<br>
-      Please check your email or phone for a confirmation note. If you provided an email and don't see it shortly, please check your spam or junk folder.
+      Please check your email for a confirmation note. If you don't see it shortly, please check your spam or junk folder.
     </div>
     <div class="success-msg" id="success-decline">
       <div style="font-size:28px;color:var(--gold);margin-bottom:.75rem">✦</div>
       Thank you for letting us know.<br>We'll miss you and hope to celebrate together another time.<br>
-      Please check your email or phone for a confirmation note. If you provided an email and don't see it shortly, please check your spam or junk folder.
+      Please check your email for a confirmation note. If you don't see it shortly, please check your spam or junk folder.
     </div>
   </div>
 </section>
@@ -981,10 +981,7 @@ function submitRSVP(){
   hint.style.color='';
   var valid=true;
   if(!nameEl.value.trim()){nameEl.style.borderColor=err;nameEl.focus();valid=false;}
-  if(accepting){
-    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailEl.style.borderColor=err;if(valid)emailEl.focus();valid=false;}
-    if(!email&&!phone){emailEl.style.borderColor=err;phoneEl.style.borderColor=err;hint.style.color=err;if(valid)emailEl.focus();valid=false;}
-  }
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailEl.style.borderColor=err;hint.style.color=err;if(valid)emailEl.focus();valid=false;}
   // Validate guest detail fields when bringing guests
   if(accepting){
     var hasGuestsVal=document.querySelector('input[name="hasguests"]:checked').value;
@@ -1038,7 +1035,7 @@ function submitRSVP(){
   var html='';
   function row(label,value){html+='<div class="modal-row"><div class="modal-label">'+label+'</div><div class="modal-value">'+value+'</div></div>';}
   row('Name',nameEl.value.trim());
-  if(accepting&&email)row('Email',email);
+  if(email)row('Email',email);
   if(accepting&&phone)row('Phone',phone);
   html+='<div class="modal-divider"></div>';
   row('Reception',accepting?'Joyfully accepts':'Regretfully declines');
