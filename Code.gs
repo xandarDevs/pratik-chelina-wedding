@@ -296,13 +296,14 @@ function buildAcceptedEmail(data) {
     '',
     guestList,
     '',
+  ].concat(formatGuestMessageText(data.message), [
     'As seating is limited, please contact the family of the bride or groom if you need to make any changes to the guests listed above.',
     '',
     'As a gentle reminder, your presence and blessings are the greatest gift; the newlyweds kindly request no boxed gifts.',
     '',
     'With love,',
     'The families of Pratik & Chelina'
-  ].join('\n');
+  ]).join('\n');
 }
 
 function buildDeclinedEmail(data) {
@@ -313,9 +314,10 @@ function buildDeclinedEmail(data) {
     '',
     'Your love, blessings, and good wishes mean so much to Pratik and Chelina as they begin this new chapter together.',
     '',
+  ].concat(formatGuestMessageText(data.message), [
     'With love,',
     'The families of Pratik & Chelina'
-  ].join('\n');
+  ]).join('\n');
 }
 
 function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
@@ -323,6 +325,7 @@ function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
   const guestList = guests.length
     ? formatGuestListHtml(guests)
     : '<p style="margin:0;color:#fdf8f0;">No additional guests listed.</p>';
+  const guestMessageHtml = formatGuestMessageHtml(data.message);
   const mapImageHtml = hasMapImage
     ? '<a href="' + GOOGLE_MAPS_URL + '" target="_blank" style="display:block;margin:18px auto 0;text-decoration:none;"><img src="cid:' + MAP_CONTENT_ID + '" alt="Map to Speranza Restaurant and Banquet Hall" width="420" style="display:block;width:100%;max-width:420px;height:auto;margin:0 auto;border:1px solid rgba(238,194,25,.45);border-radius:4px;"></a>'
     : '';
@@ -339,17 +342,21 @@ function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
     mapImageHtml,
     '</div>',
     '<p style="margin:0 0 12px;line-height:1.7;color:#fdf8f0;font-size:18px;">We have noted that you will be attending with the following guest(s):</p>',
-    '<div style="margin:0 0 22px;padding:16px 18px;background:rgba(253,248,240,.06);border:1px solid rgba(238,194,25,.22);">' + guestList + '</div>',
+    '<div style="margin:0 0 22px;padding:16px 18px;background:#651014;background-color:#651014;border:1px solid #8b6518;">' + guestList + '</div>',
+    guestMessageHtml,
     '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">As seating is limited, please contact the family of the bride or groom if you need to make any changes to the guests listed above.</p>',
     '<p style="margin:0;line-height:1.7;color:#fdf8f0;font-size:18px;">As a gentle reminder, your presence and blessings are the greatest gift; the newlyweds kindly request no boxed gifts.</p>'
   ].join(''), hasMandala);
 }
 
 function buildDeclinedEmailHtml(data, hasMandala) {
+  const guestMessageHtml = formatGuestMessageHtml(data.message);
+
   return emailShell([
     '<p style="margin:0 0 18px;color:#fdf8f0;font-size:18px;">Dear ' + escapeHtml(data.name) + ',</p>',
     '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">Thank you for your RSVP. We are sorry that you will not be able to join us, but we truly appreciate you letting us know.</p>',
-    '<p style="margin:0;line-height:1.7;color:#fdf8f0;font-size:18px;">Your love, blessings, and good wishes mean so much to Pratik and Chelina as they begin this new chapter together.</p>'
+    '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">Your love, blessings, and good wishes mean so much to Pratik and Chelina as they begin this new chapter together.</p>',
+    guestMessageHtml
   ].join(''), hasMandala);
 }
 
@@ -362,22 +369,41 @@ function emailShell(content, hasMandala) {
     : '<div style="color:#EEC219;font-size:24px;line-height:1;">&#10087;</div>';
 
   return [
-    '<div style="margin:0;padding:28px 16px;background:#7E1215;color:#fdf8f0;font-family:Arial,Helvetica,sans-serif;">',
-    '<div style="max-width:640px;margin:0 auto;background:#5a0d0f;border:1px solid #EEC219;border-radius:6px;padding:10px;">',
-    '<div style="border:1px solid rgba(238,194,25,.38);border-radius:4px;padding:28px 22px;">',
+    '<!doctype html>',
+    '<html>',
+    '<head>',
+    '<meta charset="UTF-8">',
+    '<meta name="color-scheme" content="only light">',
+    '<meta name="supported-color-schemes" content="only light">',
+    '<style>:root{color-scheme:only light;supported-color-schemes:only light;} body, table, td, div, p, a{-webkit-text-size-adjust:100%;}</style>',
+    '</head>',
+    '<body style="margin:0;padding:0;background:#7E1215;background-color:#7E1215;color:#fdf8f0;">',
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#7E1215" style="width:100%;background:#7E1215;background-color:#7E1215;margin:0;padding:0;">',
+    '<tr>',
+    '<td bgcolor="#7E1215" style="background:#7E1215;background-color:#7E1215;padding:28px 16px;color:#fdf8f0;font-family:Arial,Helvetica,sans-serif;">',
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center" bgcolor="#5a0d0f" style="max-width:640px;margin:0 auto;background:#5a0d0f;background-color:#5a0d0f;border:1px solid #EEC219;border-radius:6px;">',
+    '<tr>',
+    '<td bgcolor="#5a0d0f" style="background:#5a0d0f;background-color:#5a0d0f;padding:10px;">',
+    '<div style="border:1px solid #997b22;border-radius:4px;padding:28px 22px;background:#5a0d0f;background-color:#5a0d0f;">',
     '<div style="text-align:center;margin:0 0 26px;">',
     topMandalaHtml,
     '<div style="color:#EEC219;font-family:\'Playfair Display\',Georgia,serif;font-size:48px;line-height:1.1;">Pratik &amp; Chelina</div>',
     '<div style="margin:16px auto 0;text-align:center;color:#EEC219;font-size:16px;letter-spacing:5px;">&#10022; &nbsp; &#10022; &nbsp; &#10022;</div>',
-    '<div style="width:150px;height:1px;background:linear-gradient(90deg,transparent,#EEC219,transparent);margin:16px auto 0;"></div>',
+    '<div style="width:150px;height:1px;background:#EEC219;background-color:#EEC219;margin:16px auto 0;"></div>',
     '</div>',
     content,
-    '<div style="width:150px;height:1px;background:linear-gradient(90deg,transparent,#EEC219,transparent);margin:28px auto 0;"></div>',
+    '<div style="width:150px;height:1px;background:#EEC219;background-color:#EEC219;margin:28px auto 0;"></div>',
     '<p style="margin:30px 0 0;line-height:1.7;color:#fdf8f0;font-size:18px;">With love,<br>The families of Pratik &amp; Chelina</p>',
     '<div style="text-align:center;margin-top:22px;">' + bottomMandalaHtml + '</div>',
     '</div>',
-    '</div>',
-    '</div>'
+    '</td>',
+    '</tr>',
+    '</table>',
+    '</td>',
+    '</tr>',
+    '</table>',
+    '</body>',
+    '</html>'
   ].join('');
 }
 
@@ -390,6 +416,35 @@ function formatGuestListHtml(guests) {
   });
 
   return '<ol style="margin:0;padding-left:22px;">' + items.join('') + '</ol>';
+}
+
+function formatGuestMessageHtml(message) {
+  const guestMessage = String(message || '').trim();
+
+  if (!guestMessage) {
+    return '';
+  }
+
+  return [
+    '<div style="margin:0 0 22px;padding:16px 18px;background:#651014;background-color:#651014;border:1px solid #8b6518;">',
+    '<p style="margin:0 0 8px;color:#EEC219;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Your message to the couple</p>',
+    '<p style="margin:0;line-height:1.7;color:#fdf8f0;font-size:18px;">' + escapeHtml(guestMessage).replace(/\r?\n/g, '<br>') + '</p>',
+    '</div>'
+  ].join('');
+}
+
+function formatGuestMessageText(message) {
+  const guestMessage = String(message || '').trim();
+
+  if (!guestMessage) {
+    return [];
+  }
+
+  return [
+    'Your message to the couple:',
+    guestMessage,
+    ''
+  ];
 }
 
 function escapeHtml(value) {
