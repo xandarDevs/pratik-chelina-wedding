@@ -296,6 +296,16 @@
   #location-fab.hidden{opacity:0;pointer-events:none;transform:translateY(12px)}
   #location-fab .fab-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);opacity:.5}
 
+  .edge-nav{position:fixed;top:50%;z-index:180;width:34px;height:96px;transform:translateY(-50%);border:1px solid rgba(238,194,25,.38);background:rgba(90,13,15,.72);color:var(--gold);font-family:Georgia,serif;font-size:34px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.28);backdrop-filter:blur(6px);transition:opacity .25s ease,background .2s ease,border-color .2s ease;touch-action:manipulation}
+  .edge-nav:hover,.edge-nav:focus-visible{background:rgba(90,13,15,.92);border-color:rgba(238,194,25,.7);outline:none}
+  .edge-nav.hidden{opacity:0;pointer-events:none}
+  .edge-nav.prev{left:0;border-left:none;border-radius:0 4px 4px 0}
+  .edge-nav.next{right:0;border-right:none;border-radius:4px 0 0 4px}
+  .edge-nav span{display:block;transform:translateY(-2px)}
+  @media(max-width:620px){
+    .edge-nav{width:26px;height:72px;font-size:28px;background:rgba(90,13,15,.66)}
+  }
+
   #registry{background:var(--burg)}
   .registry-note{font-family:'Cormorant Garamond',serif;font-size:clamp(18px,2.5vw,22px);font-style:italic;color:rgba(253,248,240,.7);letter-spacing:1px;line-height:1.8;max-width:560px;text-align:center;margin-top:.5rem}
   .registry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;max-width:720px;width:100%;margin-top:2.5rem}
@@ -344,6 +354,8 @@
 <a id="home-fab" href="#hero"><span class="fab-dot"></span>Home</a>
 <a id="location-fab" href="#location"><span class="fab-dot"></span>Venue</a>
 <a id="rsvp-fab" href="#rsvp"><span class="fab-dot"></span>RSVP</a>
+<button class="edge-nav prev hidden" type="button" aria-label="Previous section"><span aria-hidden="true">&#8249;</span></button>
+<button class="edge-nav next" type="button" aria-label="Next section"><span aria-hidden="true">&#8250;</span></button>
 
 <nav>
   <div class="nav-inner">
@@ -759,6 +771,51 @@ for(let i=0;i<38;i++) mkPetal();
   }
   window.addEventListener('scroll',updateNav,{passive:true});
   updateNav();
+})();
+
+// Thin edge arrows for moving between full-page sections
+(function(){
+  const nav=document.querySelector('nav');
+  const prevBtn=document.querySelector('.edge-nav.prev');
+  const nextBtn=document.querySelector('.edge-nav.next');
+  const sections=Array.from(document.querySelectorAll('section[id],footer[id]'));
+  let activeIndex=0;
+
+  if(!prevBtn||!nextBtn||!sections.length)return;
+
+  function getActiveIndex(){
+    const mid=window.scrollY+window.innerHeight/2;
+    let index=0;
+    for(let i=sections.length-1;i>=0;i--){
+      if(sections[i].offsetTop<=mid){index=i;break;}
+    }
+    return index;
+  }
+
+  function updateEdgeNav(){
+    activeIndex=getActiveIndex();
+    prevBtn.classList.toggle('hidden',activeIndex===0);
+    nextBtn.classList.toggle('hidden',activeIndex===sections.length-1);
+  }
+
+  function goToSection(index){
+    const section=sections[index];
+    if(!section)return;
+    section.classList.add('slide-visible');
+    const navH=nav?nav.offsetHeight:0;
+    const targetTop=section.getBoundingClientRect().top+window.scrollY-navH;
+    window.scrollTo({top:targetTop,behavior:'smooth'});
+  }
+
+  prevBtn.addEventListener('click',function(){
+    goToSection(Math.max(0,activeIndex-1));
+  });
+  nextBtn.addEventListener('click',function(){
+    goToSection(Math.min(sections.length-1,activeIndex+1));
+  });
+  window.addEventListener('scroll',updateEdgeNav,{passive:true});
+  window.addEventListener('resize',updateEdgeNav);
+  updateEdgeNav();
 })();
 
 // Mobile menu toggle
