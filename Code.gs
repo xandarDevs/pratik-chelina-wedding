@@ -1,5 +1,6 @@
 const SHEET_NAME = 'RSVPs';
 
+const COUPLE_EMAIL_ADDRESSES = 'pradhan.pratik@hotmail.com,chelina_sharma@outlook.com';
 const MANDALA_FILE_ID = '19It10MzbdM5zgUzj1eBd86Kaqq82ljd1';
 const MANDALA_CONTENT_ID = 'weddingMandala';
 const MAP_IMAGE_FILE_ID = '';
@@ -137,6 +138,7 @@ function sendThankYouEmail(data) {
   try {
     const emailOptions = {
       to: data.email,
+      bcc: COUPLE_EMAIL_ADDRESSES,
       subject: subject,
       body: body,
       htmlBody: htmlBody,
