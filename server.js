@@ -8,6 +8,7 @@ const HOST = '0.0.0.0';
 const ROOT_DIR = __dirname;
 const DATABASE_PATH = path.join(ROOT_DIR, 'rsvp.db');
 const SQLITE_BIN = process.env.SQLITE_BIN || 'sqlite3';
+const RSVP_DEADLINE_UTC = new Date('2026-06-16T04:00:00Z'); // June 15, 2026 at 11:59 PM Toronto time.
 
 const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
@@ -146,6 +147,11 @@ function serveStaticFile(req, res) {
 async function handleRsvp(req, res) {
   try {
     const data = await readRequestBody(req);
+
+    if (new Date() >= RSVP_DEADLINE_UTC) {
+      sendJson(res, 403, { success: false, error: 'RSVPs are now closed due to limited seating.' });
+      return;
+    }
 
     if (!data || !data.name || !data.attendance) {
       sendJson(res, 400, { success: false, error: 'Missing required RSVP fields' });

@@ -241,6 +241,9 @@
   .submit-btn{width:100%;padding:1rem;background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;border-radius:3px;font-size:15px;letter-spacing:5px;text-transform:uppercase;font-weight:400;cursor:pointer;transition:opacity .2s,box-shadow .2s;margin-top:.25rem;font-family:'Lato',sans-serif;box-shadow:0 2px 12px rgba(238,194,25,.25)}
   .submit-btn:hover{opacity:.88;box-shadow:0 4px 20px rgba(238,194,25,.35)}
   .success-msg{display:none;text-align:center;padding:2rem 1.5rem;font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);line-height:1.6}
+  .closed-msg{display:none;text-align:center;padding:2rem 1.5rem}
+  .closed-msg h3{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);font-weight:400;margin-bottom:1rem}
+  .closed-msg p{font-size:18px;color:rgba(253,248,240,.72);line-height:1.8}
 
   /* ── RSVP Confirmation Modal ── */
   .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center}
@@ -579,7 +582,7 @@
 <section id="rsvp">
   <div class="mandala-side left"><img src="images/LeafMandala.png" alt=""/></div>
   <div class="mandala-side right"><img src="images/LeafMandala.png" alt=""/></div>
-  <p class="section-label">Kindly Reply By<br>June 1, 2026</p>
+  <p class="section-label">Kindly Reply By<br>June 15, 2026</p>
   <h2 class="section-title">RSVP</h2>
   <div class="gold-rule"><span></span><i>✦</i><span></span></div>
   <div class="rsvp-card">
@@ -652,6 +655,16 @@
       Thank you for letting us know.<br>We'll miss you and hope to celebrate together another time.<br>
       Please check your email for a confirmation note. If you don't see it shortly, please check your spam or junk folder.
     </div>
+    <div class="closed-msg" id="rsvp-closed">
+      <div style="font-size:28px;color:var(--gold);margin-bottom:.75rem">&#10022;</div>
+      <h3>RSVPs Are Now Closed</h3>
+      <p>
+        Thank you so much for your love and support. Due to limited seating, we are no longer able to accept additional RSVPs after the reply deadline.
+      </p>
+      <p style="margin-top:1rem">
+        We are grateful for your understanding and look forward to celebrating with everyone who has confirmed.
+      </p>
+    </div>
   </div>
 </section>
 
@@ -702,6 +715,7 @@
 // Use localhost when opening the HTML file directly, otherwise use the same host as server.js.
 // const apiEndpoint = 'https://script.google.com/macros/s/AKfycby7jfoeRPavFQ71B-h356cDiXCyyOY6vPmbRO2kGmvx6jHeIe8THcr_MfltK2WUMtJF/exec'
 const apiEndpoint = 'https://script.google.com/macros/s/AKfycbzRJiLdzJH7ea-TTptGr06ICVKHvUTpR008X1zzel9iVylHHiSCQlQYkpOxq4VPfJyl/exec'
+const RSVP_DEADLINE_UTC = new Date('2026-06-16T04:00:00Z'); // June 15, 2026 at 11:59 PM Toronto time.
 
 async function submitToBackend(rsvpData) {
   const response = await fetch(apiEndpoint, {
@@ -721,6 +735,25 @@ async function submitToBackend(rsvpData) {
 }
 
 let pendingRsvpData = null; // Store form data for submission after confirmation
+
+function isRsvpClosed(){
+  return new Date() >= RSVP_DEADLINE_UTC;
+}
+
+function showRsvpClosed(){
+  var form=document.getElementById('rsvp-form');
+  var closed=document.getElementById('rsvp-closed');
+  var success=document.getElementById('success');
+  var decline=document.getElementById('success-decline');
+  if(form)form.style.display='none';
+  if(success)success.style.display='none';
+  if(decline)decline.style.display='none';
+  if(closed)closed.style.display='block';
+}
+
+if(isRsvpClosed()){
+  showRsvpClosed();
+}
 
 const petalColors=['#EEC219','#c9a414','#f5d567','#a8292d','#fdf8f0'];
 const petalShapes=[
@@ -1024,6 +1057,11 @@ function toggleAttendance(radio){
 }
 
 function submitRSVP(){
+  if(isRsvpClosed()){
+    showRsvpClosed();
+    return;
+  }
+
   var nameEl=document.getElementById('name');
   var emailEl=document.getElementById('email');
   var phoneEl=document.getElementById('phone');
@@ -1120,6 +1158,12 @@ function closeModal(){
 }
 
 async function confirmRSVP(){
+  if(isRsvpClosed()){
+    document.getElementById('rsvp-modal').classList.remove('open');
+    showRsvpClosed();
+    return;
+  }
+
   var attend=document.querySelector('input[name="attend"]:checked').value;
   var confirmBtn=document.querySelector('#rsvp-modal .modal-btn.confirm');
   var originalText=confirmBtn.textContent;
@@ -1141,9 +1185,22 @@ async function confirmRSVP(){
       }
       pendingRsvpData=null;
     } else {
+      if(result.error && result.error.indexOf('RSVPs are now closed') !== -1){
+        document.getElementById('rsvp-modal').classList.remove('open');
+        showRsvpClosed();
+        pendingRsvpData=null;
+        return;
+      }
       throw new Error(result.error || 'Failed to submit RSVP');
     }
   } catch(error) {
+    if(error.message && error.message.indexOf('RSVPs are now closed') !== -1){
+      document.getElementById('rsvp-modal').classList.remove('open');
+      showRsvpClosed();
+      pendingRsvpData=null;
+      return;
+    }
+
     // Show error message but still close modal
     console.error('RSVP submission error:', error);
     document.getElementById('rsvp-modal').classList.remove('open');
