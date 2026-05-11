@@ -11,17 +11,158 @@ const EVENT_LOCATION = 'The King Hall, Speranza Restaurant & Banquet Hall, 510 D
 const EVENT_START_UTC = '20260703T220000Z';
 const EVENT_END_UTC = '20260704T030000Z';
 const RSVP_DEADLINE_UTC = new Date('2026-06-16T04:00:00Z'); // June 15, 2026 at 11:59 PM Toronto time.
+const EDIT_CODE_TTL_SECONDS = 10 * 60;
+const EDIT_TOKEN_TTL_SECONDS = 30 * 60;
+
+function doGet(e) {
+  try {
+    const action = e && e.parameter ? e.parameter.action : '';
+    const email = e && e.parameter ? e.parameter.email : '';
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+      throw new Error('A valid email address is required');
+    }
+
+    if (action === 'requestEditCode') {
+      enforceRsvpDeadline();
+
+      return jsonResponse(requestEditCode(email));
+    }
+
+    if (action === 'verifyEditCode') {
+      enforceRsvpDeadline();
+
+      return jsonResponse(verifyEditCode(email, e.parameter.code));
+    }
+
+    throw new Error('Unknown RSVP lookup action');
+  } catch (error) {
+    console.error(error);
+
+    return jsonResponse({
+      success: false,
+      error: error.message || 'Unable to load RSVP'
+    });
+  }
+}
+
+function requestEditCode(email) {
+  const rsvp = getRsvpByEmail(email);
+
+  if (!rsvp) {
+    return {
+      success: true,
+      codeSent: false
+    };
+  }
+
+  const code = createEditCode();
+  CacheService
+    .getScriptCache()
+    .put(getEditCodeCacheKey(email), code, EDIT_CODE_TTL_SECONDS);
+  sendEditCodeEmail(email, code);
+
+  return {
+    success: true,
+    codeSent: true
+  };
+}
+
+function verifyEditCode(email, code) {
+  const cleanCode = String(code || '').trim();
+  const cache = CacheService.getScriptCache();
+  const cacheKey = getEditCodeCacheKey(email);
+  const savedCode = cache.get(cacheKey);
+
+  if (!savedCode || cleanCode !== savedCode) {
+    return {
+      success: false,
+      error: 'The one-time code is invalid or has expired.'
+    };
+  }
+
+  cache.remove(cacheKey);
+  const editToken = Utilities.getUuid();
+  cache.put(getEditTokenCacheKey(email), editToken, EDIT_TOKEN_TTL_SECONDS);
+
+  return {
+    success: true,
+    editToken: editToken,
+    rsvp: getRsvpByEmail(email)
+  };
+}
+
+function createEditCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function getEditCodeCacheKey(email) {
+  return 'rsvp-edit-code:' + normalizeEmail(email);
+}
+
+function getEditTokenCacheKey(email) {
+  return 'rsvp-edit-token:' + normalizeEmail(email);
+}
+
+function validateExistingRsvpEditAccess(data) {
+  const sheet = getRsvpSheet();
+
+  if (!findExistingRsvpRowByEmail(sheet, data.email)) {
+    return;
+  }
+
+  const savedToken = CacheService
+    .getScriptCache()
+    .get(getEditTokenCacheKey(data.email));
+
+  if (!savedToken || String(data.editToken || '') !== savedToken) {
+    throw new Error('Please verify the one-time code sent to your email before updating this RSVP.');
+  }
+}
+
+function consumeEditToken(email) {
+  CacheService
+    .getScriptCache()
+    .remove(getEditTokenCacheKey(email));
+}
+
+function sendEditCodeEmail(email, code) {
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: 'Your RSVP Edit Code',
+      body: [
+        'Your one-time code to edit your RSVP is:',
+        '',
+        code,
+        '',
+        'This code expires in 10 minutes.',
+        '',
+        'If you did not request this code, you can ignore this email.',
+        '',
+        'With love,',
+        'The families of Pratik & Chelina'
+      ].join('\n'),
+      name: 'Pratik & Chelina Wedding'
+    });
+  } catch (error) {
+    console.error('Failed to send RSVP edit code:', error);
+    throw new Error('Unable to send the one-time code. Please try again.');
+  }
+}
 
 function doPost(e) {
   try {
     const data = parseRsvpPayload(e);
     enforceRsvpDeadline();
     validateRsvp(data);
+    validateExistingRsvpEditAccess(data);
     const emailResult = sendThankYouEmail(data);
-    appendRsvpToSheet(data, emailResult);
+    const saveResult = saveRsvpToSheet(data, emailResult);
 
     return jsonResponse({
       success: true,
+      updated: saveResult.updated,
       email: emailResult
     });
   } catch (error) {
@@ -58,11 +199,31 @@ function validateRsvp(data) {
   }
 }
 
-function appendRsvpToSheet(data, emailResult) {
+function saveRsvpToSheet(data, emailResult) {
   const sheet = getRsvpSheet();
+  const row = buildRsvpRow(data, emailResult);
+  const existingRow = findExistingRsvpRowByEmail(sheet, data.email);
+
+  if (existingRow) {
+    sheet.getRange(existingRow, 1, 1, row.length).setValues([row]);
+    consumeEditToken(data.email);
+
+    return {
+      updated: true
+    };
+  }
+
+  sheet.appendRow(row);
+
+  return {
+    updated: false
+  };
+}
+
+function buildRsvpRow(data, emailResult) {
   const guests = Array.isArray(data.guests) ? data.guests : [];
 
-  sheet.appendRow([
+  return [
     new Date(),
     data.name || '',
     data.attendance || '',
@@ -75,7 +236,86 @@ function appendRsvpToSheet(data, emailResult) {
     data.message || '',
     emailResult.status,
     emailResult.error || ''
-  ]);
+  ];
+}
+
+function findExistingRsvpRowByEmail(sheet, email) {
+  const normalizedEmail = normalizeEmail(email);
+  const lastRow = sheet.getLastRow();
+
+  if (!normalizedEmail || lastRow < 2) {
+    return 0;
+  }
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const emailColumn = headers.indexOf('Email') + 1;
+
+  if (!emailColumn) {
+    return 0;
+  }
+
+  const emails = sheet.getRange(2, emailColumn, lastRow - 1, 1).getValues();
+
+  for (let i = emails.length - 1; i >= 0; i--) {
+    if (normalizeEmail(emails[i][0]) === normalizedEmail) {
+      return i + 2;
+    }
+  }
+
+  return 0;
+}
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function getRsvpByEmail(email) {
+  const sheet = getRsvpSheet();
+  const rowNumber = findExistingRsvpRowByEmail(sheet, email);
+
+  if (!rowNumber) {
+    return null;
+  }
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const row = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const valueByHeader = {};
+
+  headers.forEach(function(header, index) {
+    valueByHeader[header] = row[index];
+  });
+
+  return {
+    name: valueByHeader['Name'] || '',
+    attendance: valueByHeader['Attendance'] || '',
+    email: valueByHeader['Email'] || '',
+    phone: valueByHeader['Phone'] || '',
+    hasGuests: valueByHeader['Has Guests'] || 'No',
+    guestCount: String(valueByHeader['Guest Count'] || '0'),
+    guests: parseGuestList(valueByHeader['Guests']),
+    dietary: valueByHeader['Dietary Requirements'] || '',
+    message: valueByHeader['Message'] || ''
+  };
+}
+
+function parseGuestList(guestList) {
+  return String(guestList || '')
+    .split(/\r?\n/)
+    .map(function(line) {
+      const match = line.match(/^\d+\.\s*(.*?)(?:\s*\((.*)\))?$/);
+
+      if (!match) {
+        return null;
+      }
+
+      return {
+        name: match[1] || '',
+        relationship: match[2] || ''
+      };
+    })
+    .filter(function(guest) {
+      return guest && guest.name;
+    });
 }
 
 function getRsvpSheet() {
@@ -307,7 +547,7 @@ function buildAcceptedEmail(data) {
     guestList,
     '',
   ].concat(formatGuestMessageText(data.message), [
-    'As seating is limited, please contact the family of the bride or groom if you need to make any changes to the guests listed above.',
+    'If you need to make any changes before the RSVP deadline, please use the same email address and one-time code on the RSVP form.',
     '',
     'As a gentle reminder, your presence and blessings are the greatest gift; the newlyweds kindly request no boxed gifts.',
     '',
@@ -354,7 +594,7 @@ function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
     '<p style="margin:0 0 12px;line-height:1.7;color:#fdf8f0;font-size:18px;">We have noted that you will be attending with the following guest(s):</p>',
     '<div style="margin:0 0 22px;padding:16px 18px;background:#651014;background-color:#651014;border:1px solid #8b6518;">' + guestList + '</div>',
     guestMessageHtml,
-    '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">As seating is limited, please contact the family of the bride or groom if you need to make any changes to the guests listed above.</p>',
+    '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">If you need to make any changes before the RSVP deadline, please use the same email address and one-time code on the RSVP form.</p>',
     '<p style="margin:0;line-height:1.7;color:#fdf8f0;font-size:18px;">As a gentle reminder, your presence and blessings are the greatest gift; the newlyweds kindly request no boxed gifts.</p>'
   ].join(''), hasMandala);
 }

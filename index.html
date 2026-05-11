@@ -188,6 +188,7 @@
   .t-time{font-size:14px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;opacity:.7;margin-bottom:.3rem}
   .t-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--cream);font-weight:400;margin-bottom:.3rem}
   .t-desc{font-size:16px;color:rgba(253,248,240,.55);line-height:1.6}
+  .schedule-note{max-width:520px;margin:.75rem auto 0;font-size:15px;line-height:1.7;color:rgba(253,248,240,.68);text-align:center}
   @media(max-width:520px){
     .timeline::before{left:5px}
     .t-item,.t-item:nth-child(even){flex-direction:row}
@@ -238,6 +239,13 @@
   .guest-entry input{flex:1;padding:.6rem .75rem;border:1px solid rgba(212,175,55,.18);border-radius:8px;background:rgba(212,175,55,.04);color:var(--cream);font-family:inherit;font-size:15px;outline:none;transition:border-color .2s}
   .guest-entry input:focus{border-color:var(--gold)}
   .guest-entry input::placeholder{color:rgba(253,248,240,.25)}
+  .edit-code-panel{display:none;margin:-.5rem 0 1.35rem;padding:1rem;border:1px solid rgba(238,194,25,.18);border-radius:4px;background:rgba(255,255,255,.04)}
+  .edit-code-panel.open{display:block}
+  .edit-code-actions{display:flex;gap:.65rem;margin-top:.65rem}
+  .edit-code-actions button{flex:1;padding:.7rem .85rem;border-radius:3px;font-family:'Lato',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s,box-shadow .2s}
+  .edit-code-actions button:hover{opacity:.88}
+  .edit-code-actions .verify-code-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;box-shadow:0 2px 10px rgba(238,194,25,.18)}
+  .edit-code-actions .resend-code-btn{background:transparent;color:var(--gold);border:1px solid rgba(238,194,25,.3)}
   .submit-btn{width:100%;padding:1rem;background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;border-radius:3px;font-size:15px;letter-spacing:5px;text-transform:uppercase;font-weight:400;cursor:pointer;transition:opacity .2s,box-shadow .2s;margin-top:.25rem;font-family:'Lato',sans-serif;box-shadow:0 2px 12px rgba(238,194,25,.25)}
   .submit-btn:hover{opacity:.88;box-shadow:0 4px 20px rgba(238,194,25,.35)}
   .success-msg{display:none;text-align:center;padding:2rem 1.5rem;font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);line-height:1.6}
@@ -502,6 +510,7 @@
   <p class="section-label">The Big Day</p>
   <h2 class="section-title">Schedule</h2>
   <div class="gold-rule"><span></span><i>✦</i><span></span></div>
+  <p class="schedule-note">Please note that the schedule is subject to change. We will share any updates as the day gets closer.</p>
   <div class="timeline">
     <div class="t-item">
       <div class="t-text">
@@ -605,7 +614,15 @@
         <label>Email Address <span style="color:var(--gold-lt);opacity:1">*</span></label>
         <input type="email" id="email" placeholder="your@email.com" required/>
       </div>
-      <p id="contact-hint" style="font-size:13px;color:rgba(253,248,240,.4);letter-spacing:1px;margin-top:-.5rem;margin-bottom:1.25rem"><span style="color:var(--gold-lt)">*</span> Please provide an email address for wedding updates</p>
+      <p id="contact-hint" style="font-size:13px;color:rgba(253,248,240,.4);letter-spacing:1px;margin-top:-.5rem;margin-bottom:1.25rem"><span style="color:var(--gold-lt)">*</span> Please use the same email address if you need to update your RSVP later</p>
+      <div class="edit-code-panel" id="edit-code-panel">
+        <label>One-Time Code</label>
+        <input type="text" id="edit-code" inputmode="numeric" maxlength="6" placeholder="Enter the 6-digit code"/>
+        <div class="edit-code-actions">
+          <button type="button" class="verify-code-btn" onclick="verifyRsvpEditCode()">Load RSVP</button>
+          <button type="button" class="resend-code-btn" onclick="requestRsvpEditCode(true)">Resend Code</button>
+        </div>
+      </div>
       <div id="accept-fields">
       <div class="form-row">
         <label>Phone Number <span style="color:var(--gold-lt);opacity:.7;font-size:12px;letter-spacing:1px">(Optional)</span></label>
@@ -734,7 +751,36 @@ async function submitToBackend(rsvpData) {
   return response.json();
 }
 
+async function requestEditCode(email) {
+  const response = await fetch(apiEndpoint + '?action=requestEditCode&email=' + encodeURIComponent(email), {
+    method: 'GET',
+    redirect: 'follow'
+  });
+
+  if (!response.ok) {
+    throw new Error('Unable to request edit code');
+  }
+
+  return response.json();
+}
+
+async function verifyEditCode(email, code) {
+  const response = await fetch(apiEndpoint + '?action=verifyEditCode&email=' + encodeURIComponent(email) + '&code=' + encodeURIComponent(code), {
+    method: 'GET',
+    redirect: 'follow'
+  });
+
+  if (!response.ok) {
+    throw new Error('Unable to verify edit code');
+  }
+
+  return response.json();
+}
+
 let pendingRsvpData = null; // Store form data for submission after confirmation
+let lastRequestedCodeEmail = '';
+let verifiedRsvpEmail = '';
+let rsvpEditToken = '';
 
 function isRsvpClosed(){
   return new Date() >= RSVP_DEADLINE_UTC;
@@ -1013,6 +1059,29 @@ new IntersectionObserver(function(entries){
 window.addEventListener('DOMContentLoaded',function(){
   toggleAttendance(document.querySelector('input[name="attend"]:checked'));
   toggleGuests(document.querySelector('input[name="hasguests"]:checked'));
+  var emailEl=document.getElementById('email');
+  if(emailEl){
+    emailEl.addEventListener('blur',function(){requestRsvpEditCode(false);});
+    emailEl.addEventListener('change',function(){
+      verifiedRsvpEmail='';
+      rsvpEditToken='';
+      lastRequestedCodeEmail='';
+      hideEditCodePanel();
+      requestRsvpEditCode(false);
+    });
+  }
+  var editCodeEl=document.getElementById('edit-code');
+  if(editCodeEl){
+    editCodeEl.addEventListener('input',function(){
+      editCodeEl.value=editCodeEl.value.replace(/\D/g,'').slice(0,6);
+    });
+    editCodeEl.addEventListener('keydown',function(event){
+      if(event.key==='Enter'){
+        event.preventDefault();
+        verifyRsvpEditCode();
+      }
+    });
+  }
 });
 
 function toggleGuests(radio){
@@ -1034,10 +1103,22 @@ function renderGuestFields(){
   container.innerHTML='';
   for(var i=0;i<count;i++){
     var div=document.createElement('div');
+    var index=document.createElement('span');
+    var nameInput=document.createElement('input');
+    var relInput=document.createElement('input');
     div.className='guest-entry';
-    div.innerHTML='<span>'+(i+1)+'.</span>'
-      +'<input type="text" class="guest-name" placeholder="Full name *" value="'+(saved[i]?saved[i].name:'')+'"/>'
-      +'<input type="text" class="guest-rel" placeholder="Relationship *" value="'+(saved[i]?saved[i].rel:'')+'"/>';
+    index.textContent=(i+1)+'.';
+    nameInput.type='text';
+    nameInput.className='guest-name';
+    nameInput.placeholder='Full name *';
+    nameInput.value=saved[i]?saved[i].name:'';
+    relInput.type='text';
+    relInput.className='guest-rel';
+    relInput.placeholder='Relationship *';
+    relInput.value=saved[i]?saved[i].rel:'';
+    div.appendChild(index);
+    div.appendChild(nameInput);
+    div.appendChild(relInput);
     container.appendChild(div);
   }
 }
@@ -1053,6 +1134,143 @@ function toggleAttendance(radio){
     if(ceremonyRow)ceremonyRow.classList.remove('open');
     var ceremonyCheckbox=document.getElementById('ceremony');
     if(ceremonyCheckbox)ceremonyCheckbox.checked=false;
+  }
+}
+
+function setRadioValue(name,value){
+  var radio=document.querySelector('input[name="'+name+'"][value="'+value+'"]');
+  if(radio){
+    radio.checked=true;
+    if(name==='attend')toggleAttendance(radio);
+    if(name==='hasguests')toggleGuests(radio);
+  }
+}
+
+function setContactHint(message,color){
+  var hint=document.getElementById('contact-hint');
+  if(!hint)return;
+  hint.innerHTML='<span style="color:var(--gold-lt)">*</span> '+message;
+  hint.style.color=color||'';
+}
+
+function hideEditCodePanel(){
+  var panel=document.getElementById('edit-code-panel');
+  var codeEl=document.getElementById('edit-code');
+  if(panel)panel.classList.remove('open');
+  if(codeEl)codeEl.value='';
+}
+
+function showEditCodePanel(){
+  var panel=document.getElementById('edit-code-panel');
+  var codeEl=document.getElementById('edit-code');
+  if(panel)panel.classList.add('open');
+  if(codeEl)codeEl.focus();
+}
+
+function populateRsvpForm(rsvp){
+  var accepting=rsvp.attendance==='Accepted';
+  var guests=Array.isArray(rsvp.guests)?rsvp.guests:[];
+  document.getElementById('name').value=rsvp.name||'';
+  document.getElementById('email').value=rsvp.email||document.getElementById('email').value;
+  setRadioValue('attend',accepting?'yes':'no');
+  document.getElementById('phone').value=rsvp.phone||'';
+  setRadioValue('hasguests',accepting&&rsvp.hasGuests==='Yes'?'yes':'no');
+
+  if(accepting&&rsvp.hasGuests==='Yes'){
+    var count=Math.min(Math.max(parseInt(rsvp.guestCount||guests.length||1,10),1),4);
+    document.getElementById('guests').value=String(count);
+    renderGuestFields();
+    var gNames=document.querySelectorAll('#guest-details .guest-name');
+    var gRels=document.querySelectorAll('#guest-details .guest-rel');
+    for(var i=0;i<gNames.length;i++){
+      gNames[i].value=guests[i]&&guests[i].name?guests[i].name:'';
+      gRels[i].value=guests[i]&&guests[i].relationship?guests[i].relationship:'';
+    }
+  }
+
+  document.getElementById('dietary').value=rsvp.dietary||'';
+  document.getElementById('message').value=rsvp.message||'';
+}
+
+async function requestRsvpEditCode(force){
+  if(isRsvpClosed())return;
+
+  var emailEl=document.getElementById('email');
+  var email=emailEl.value.trim();
+
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    return;
+  }
+
+  var normalizedEmail=email.toLowerCase();
+
+  if(!force&&(normalizedEmail===lastRequestedCodeEmail||normalizedEmail===verifiedRsvpEmail)){
+    return;
+  }
+
+  lastRequestedCodeEmail=normalizedEmail;
+  hideEditCodePanel();
+  setContactHint('Checking for an existing RSVP...', 'rgba(253,248,240,.55)');
+
+  try{
+    var result=await requestEditCode(email);
+
+    if(result.success&&result.codeSent){
+      setContactHint('We found your previous RSVP. Enter the one-time code sent to your email to load it.', 'rgba(245,213,103,.9)');
+      showEditCodePanel();
+      return;
+    }
+
+    setContactHint('Please use the same email address if you need to update your RSVP later', '');
+  }catch(error){
+    console.error('RSVP edit code request error:',error);
+    setContactHint('Please use the same email address if you need to update your RSVP later', '');
+  }
+}
+
+async function verifyRsvpEditCode(){
+  if(isRsvpClosed())return;
+
+  var emailEl=document.getElementById('email');
+  var codeEl=document.getElementById('edit-code');
+  var email=emailEl.value.trim();
+  var code=codeEl.value.trim();
+  var err='rgba(220,80,80,.8)';
+
+  codeEl.style.borderColor='';
+
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    emailEl.focus();
+    return;
+  }
+
+  if(!/^\d{6}$/.test(code)){
+    codeEl.style.borderColor=err;
+    codeEl.focus();
+    setContactHint('Please enter the 6-digit one-time code from your email.', err);
+    return;
+  }
+
+  setContactHint('Verifying your one-time code...', 'rgba(253,248,240,.55)');
+
+  try{
+    var result=await verifyEditCode(email,code);
+
+    if(result.success&&result.rsvp){
+      rsvpEditToken=result.editToken||'';
+      populateRsvpForm(result.rsvp);
+      verifiedRsvpEmail=email.toLowerCase();
+      hideEditCodePanel();
+      setContactHint('Your previous RSVP has been loaded. You can edit and submit again.', 'rgba(245,213,103,.9)');
+      return;
+    }
+
+    throw new Error(result.error||'The one-time code is invalid or has expired.');
+  }catch(error){
+    console.error('RSVP edit code verification error:',error);
+    codeEl.style.borderColor=err;
+    codeEl.focus();
+    setContactHint(error.message||'The one-time code is invalid or has expired.', err);
   }
 }
 
@@ -1117,7 +1335,8 @@ function submitRSVP(){
     guestCount: accepting && document.querySelector('input[name="hasguests"]:checked').value === 'yes' ? document.getElementById('guests').value : '0',
     guests: guests,
     dietary: accepting ? document.getElementById('dietary').value.trim() : '',
-    message: document.getElementById('message').value.trim()
+    message: document.getElementById('message').value.trim(),
+    editToken: email.toLowerCase()===verifiedRsvpEmail ? rsvpEditToken : ''
   };
 
   // Build confirmation summary
@@ -1197,6 +1416,15 @@ async function confirmRSVP(){
     if(error.message && error.message.indexOf('RSVPs are now closed') !== -1){
       document.getElementById('rsvp-modal').classList.remove('open');
       showRsvpClosed();
+      pendingRsvpData=null;
+      return;
+    }
+
+    if(error.message && error.message.indexOf('one-time code') !== -1){
+      document.getElementById('rsvp-modal').classList.remove('open');
+      document.getElementById('rsvp-form').style.display='block';
+      setContactHint(error.message, 'rgba(220,80,80,.8)');
+      requestRsvpEditCode(true);
       pendingRsvpData=null;
       return;
     }
