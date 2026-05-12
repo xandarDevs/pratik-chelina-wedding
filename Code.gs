@@ -507,6 +507,11 @@ function buildCalendarInvite() {
     'LOCATION:' + escapeIcsText(EVENT_LOCATION),
     'DESCRIPTION:' + escapeIcsText('Wedding reception for Pratik and Chelina. Open in Google Maps: ' + GOOGLE_MAPS_URL),
     'URL:' + GOOGLE_MAPS_URL,
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:' + escapeIcsText('Reminder: ' + EVENT_TITLE),
+    'TRIGGER:-P1D',
+    'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR'
   ].join('\r\n');
