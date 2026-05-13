@@ -1,4 +1,5 @@
 const SHEET_NAME = 'RSVPs';
+const GUEST_LIST_SHEET_NAME = 'Guest List';
 
 const COUPLE_EMAIL_ADDRESSES = 'pradhan.pratik@hotmail.com,chelina_sharma@outlook.com';
 const MANDALA_FILE_ID = '19It10MzbdM5zgUzj1eBd86Kaqq82ljd1';
@@ -159,6 +160,7 @@ function doPost(e) {
     validateExistingRsvpEditAccess(data);
     const emailResult = sendThankYouEmail(data);
     const saveResult = saveRsvpToSheet(data, emailResult);
+    updateGuestListSheet();
 
     return jsonResponse({
       success: true,
@@ -218,6 +220,59 @@ function saveRsvpToSheet(data, emailResult) {
   return {
     updated: false
   };
+}
+
+function updateGuestListSheet() {
+  const rsvpSheet = getRsvpSheet();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  let guestListSheet = spreadsheet.getSheetByName(GUEST_LIST_SHEET_NAME);
+
+  if (!guestListSheet) {
+    guestListSheet = spreadsheet.insertSheet(GUEST_LIST_SHEET_NAME);
+  }
+
+  const rsvpValues = rsvpSheet.getDataRange().getValues();
+  const headers = rsvpValues[0] || [];
+  const nameIndex = headers.indexOf('Name');
+  const attendanceIndex = headers.indexOf('Attendance');
+  const guestsIndex = headers.indexOf('Guests');
+  const guestListRows = [['Guest List']];
+  let totalGuests = 0;
+
+  rsvpValues.slice(1).forEach(function(row) {
+    const name = row[nameIndex];
+    const attendance = row[attendanceIndex];
+
+    if (attendance !== 'Accepted' || !name) {
+      return;
+    }
+
+    const guests = parseGuestList(row[guestsIndex]);
+
+    if (guestListRows.length > 1) {
+      guestListRows.push(['']);
+    }
+
+    guestListRows.push([name]);
+    totalGuests++;
+
+    guests.forEach(function(guest) {
+      guestListRows.push([guest.name]);
+      totalGuests++;
+    });
+  });
+
+  if (guestListRows.length > 1) {
+    guestListRows.push(['']);
+  }
+
+  guestListRows.push(['Total People: ' + totalGuests]);
+
+  guestListSheet.clearContents();
+  guestListSheet
+    .getRange(1, 1, guestListRows.length, 1)
+    .setValues(guestListRows);
+  guestListSheet.autoResizeColumn(1);
 }
 
 function buildRsvpRow(data, emailResult) {
