@@ -234,11 +234,17 @@
   .form-row-slide{overflow:hidden;max-height:0;opacity:0;margin-bottom:0;transition:max-height .35s ease,opacity .28s ease,margin-bottom .35s ease}
   .form-row-slide.open{max-height:800px;opacity:1;margin-bottom:1.25rem}
   .guest-details{margin-top:.75rem}
-  .guest-entry{display:flex;gap:.5rem;margin-bottom:.5rem;align-items:center}
+  .guest-entry{display:grid;grid-template-columns:24px repeat(4,minmax(0,1fr));gap:.5rem;margin-bottom:.5rem;align-items:center}
   .guest-entry span{color:var(--gold);font-size:13px;min-width:18px;text-align:center}
-  .guest-entry input{flex:1;padding:.6rem .75rem;border:1px solid rgba(212,175,55,.18);border-radius:8px;background:rgba(212,175,55,.04);color:var(--cream);font-family:inherit;font-size:15px;outline:none;transition:border-color .2s}
+  .guest-entry input{min-width:0;padding:.6rem .75rem;border:1px solid rgba(212,175,55,.18);border-radius:8px;background:rgba(212,175,55,.04);color:var(--cream);font-family:inherit;font-size:15px;outline:none;transition:border-color .2s}
   .guest-entry input:focus{border-color:var(--gold)}
   .guest-entry input::placeholder{color:rgba(253,248,240,.25)}
+  @media(max-width:640px){
+    .guest-entry{grid-template-columns:24px 1fr 1fr}
+    .guest-entry span{grid-row:1 / 3}
+    .guest-entry .guest-last-name{grid-column:2 / 3}
+    .guest-entry .guest-rel{grid-column:3 / 4}
+  }
   .edit-code-panel{display:none;margin:-.5rem 0 1.35rem;padding:1rem;border:1px solid rgba(238,194,25,.18);border-radius:4px;background:rgba(255,255,255,.04)}
   .edit-code-panel.open{display:block}
   .edit-code-actions{display:flex;gap:.65rem;margin-top:.65rem}
@@ -600,8 +606,16 @@
         <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>
       <div class="form-row">
-        <label>Full Name <span style="color:var(--gold-lt);opacity:1">*</span></label>
-        <input type="text" id="name" placeholder="Your name" required/>
+        <label>First Name <span style="color:var(--gold-lt);opacity:1">*</span></label>
+        <input type="text" id="first-name" placeholder="First name" pattern="\S+" title="First name cannot contain spaces" required/>
+      </div>
+      <div class="form-row">
+        <label>Middle Name <span style="color:var(--gold-lt);opacity:.7;font-size:12px;letter-spacing:1px">(Optional)</span></label>
+        <input type="text" id="middle-name" placeholder="Middle name"/>
+      </div>
+      <div class="form-row">
+        <label>Last Name <span style="color:var(--gold-lt);opacity:1">*</span></label>
+        <input type="text" id="last-name" placeholder="Last name" pattern="\S+" title="Last name cannot contain spaces" required/>
       </div>
       <div class="form-row">
         <label>Reception Attendance</label>
@@ -1097,27 +1111,51 @@ function renderGuestFields(){
   // preserve already-entered values
   var saved=[];
   for(var i=0;i<existing.length;i++){
-    var inputs=existing[i].querySelectorAll('input');
-    saved.push({name:inputs[0].value,rel:inputs[1].value});
+    var firstNameEl=existing[i].querySelector('.guest-first-name');
+    var middleNameEl=existing[i].querySelector('.guest-middle-name');
+    var lastNameEl=existing[i].querySelector('.guest-last-name');
+    var relEl=existing[i].querySelector('.guest-rel');
+    saved.push({
+      firstName:firstNameEl?firstNameEl.value:'',
+      middleName:middleNameEl?middleNameEl.value:'',
+      lastName:lastNameEl?lastNameEl.value:'',
+      rel:relEl?relEl.value:''
+    });
   }
   container.innerHTML='';
   for(var i=0;i<count;i++){
     var div=document.createElement('div');
     var index=document.createElement('span');
-    var nameInput=document.createElement('input');
+    var firstNameInput=document.createElement('input');
+    var middleNameInput=document.createElement('input');
+    var lastNameInput=document.createElement('input');
     var relInput=document.createElement('input');
     div.className='guest-entry';
     index.textContent=(i+1)+'.';
-    nameInput.type='text';
-    nameInput.className='guest-name';
-    nameInput.placeholder='Full name *';
-    nameInput.value=saved[i]?saved[i].name:'';
+    firstNameInput.type='text';
+    firstNameInput.className='guest-first-name guest-name';
+    firstNameInput.placeholder='First *';
+    firstNameInput.pattern='\\S+';
+    firstNameInput.title='First name cannot contain spaces';
+    firstNameInput.value=saved[i]?saved[i].firstName:'';
+    middleNameInput.type='text';
+    middleNameInput.className='guest-middle-name';
+    middleNameInput.placeholder='Middle';
+    middleNameInput.value=saved[i]?saved[i].middleName:'';
+    lastNameInput.type='text';
+    lastNameInput.className='guest-last-name';
+    lastNameInput.placeholder='Last *';
+    lastNameInput.pattern='\\S+';
+    lastNameInput.title='Last name cannot contain spaces';
+    lastNameInput.value=saved[i]?saved[i].lastName:'';
     relInput.type='text';
     relInput.className='guest-rel';
     relInput.placeholder='Relationship *';
     relInput.value=saved[i]?saved[i].rel:'';
     div.appendChild(index);
-    div.appendChild(nameInput);
+    div.appendChild(firstNameInput);
+    div.appendChild(middleNameInput);
+    div.appendChild(lastNameInput);
     div.appendChild(relInput);
     container.appendChild(div);
   }
@@ -1146,6 +1184,22 @@ function setRadioValue(name,value){
   }
 }
 
+function getDisplayName(firstName,middleName,lastName){
+  return [firstName,middleName,lastName].filter(function(part){
+    return part;
+  }).join(' ');
+}
+
+function splitDisplayName(name){
+  var parts=String(name||'').trim().split(/\s+/).filter(Boolean);
+
+  return {
+    firstName: parts[0]||'',
+    middleName: parts.length>2?parts.slice(1,-1).join(' '):'',
+    lastName: parts.length>1?parts[parts.length-1]:''
+  };
+}
+
 function setContactHint(message,color){
   var hint=document.getElementById('contact-hint');
   if(!hint)return;
@@ -1170,7 +1224,17 @@ function showEditCodePanel(){
 function populateRsvpForm(rsvp){
   var accepting=rsvp.attendance==='Accepted';
   var guests=Array.isArray(rsvp.guests)?rsvp.guests:[];
-  document.getElementById('name').value=rsvp.name||'';
+  var nameParts={
+    firstName:rsvp.firstName||'',
+    middleName:rsvp.middleName||'',
+    lastName:rsvp.lastName||''
+  };
+  if(!nameParts.firstName&&!nameParts.lastName&&rsvp.name){
+    nameParts=splitDisplayName(rsvp.name);
+  }
+  document.getElementById('first-name').value=nameParts.firstName;
+  document.getElementById('middle-name').value=nameParts.middleName;
+  document.getElementById('last-name').value=nameParts.lastName;
   document.getElementById('email').value=rsvp.email||document.getElementById('email').value;
   setRadioValue('attend',accepting?'yes':'no');
   document.getElementById('phone').value=rsvp.phone||'';
@@ -1180,10 +1244,23 @@ function populateRsvpForm(rsvp){
     var count=Math.min(Math.max(parseInt(rsvp.guestCount||guests.length||1,10),1),4);
     document.getElementById('guests').value=String(count);
     renderGuestFields();
-    var gNames=document.querySelectorAll('#guest-details .guest-name');
+    var gFirstNames=document.querySelectorAll('#guest-details .guest-first-name');
+    var gMiddleNames=document.querySelectorAll('#guest-details .guest-middle-name');
+    var gLastNames=document.querySelectorAll('#guest-details .guest-last-name');
     var gRels=document.querySelectorAll('#guest-details .guest-rel');
-    for(var i=0;i<gNames.length;i++){
-      gNames[i].value=guests[i]&&guests[i].name?guests[i].name:'';
+    for(var i=0;i<gFirstNames.length;i++){
+      var guest=guests[i]||{};
+      var guestNameParts={
+        firstName:guest.firstName||'',
+        middleName:guest.middleName||'',
+        lastName:guest.lastName||''
+      };
+      if(!guestNameParts.firstName&&!guestNameParts.lastName&&guest.name){
+        guestNameParts=splitDisplayName(guest.name);
+      }
+      gFirstNames[i].value=guestNameParts.firstName;
+      gMiddleNames[i].value=guestNameParts.middleName;
+      gLastNames[i].value=guestNameParts.lastName;
       gRels[i].value=guests[i]&&guests[i].relationship?guests[i].relationship:'';
     }
   }
@@ -1280,7 +1357,9 @@ function submitRSVP(){
     return;
   }
 
-  var nameEl=document.getElementById('name');
+  var firstNameEl=document.getElementById('first-name');
+  var middleNameEl=document.getElementById('middle-name');
+  var lastNameEl=document.getElementById('last-name');
   var emailEl=document.getElementById('email');
   var phoneEl=document.getElementById('phone');
   var hint=document.getElementById('contact-hint');
@@ -1288,23 +1367,35 @@ function submitRSVP(){
   var accepting=attend==='yes';
   var email=emailEl.value.trim();
   var phone=phoneEl.value.trim();
+  var firstName=firstNameEl.value.trim();
+  var middleName=middleNameEl.value.trim();
+  var lastName=lastNameEl.value.trim();
+  var displayName=getDisplayName(firstName,middleName,lastName);
   var err='rgba(220,80,80,.8)';
-  nameEl.style.borderColor='';
+  firstNameEl.style.borderColor='';
+  middleNameEl.style.borderColor='';
+  lastNameEl.style.borderColor='';
   emailEl.style.borderColor='';
   phoneEl.style.borderColor='';
   hint.style.color='';
   var valid=true;
-  if(!nameEl.value.trim()){nameEl.style.borderColor=err;nameEl.focus();valid=false;}
+  if(!firstName||/\s/.test(firstName)){firstNameEl.style.borderColor=err;firstNameEl.focus();valid=false;}
+  if(!lastName||/\s/.test(lastName)){lastNameEl.style.borderColor=err;if(valid)lastNameEl.focus();valid=false;}
   if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailEl.style.borderColor=err;hint.style.color=err;if(valid)emailEl.focus();valid=false;}
   // Validate guest detail fields when bringing guests
   if(accepting){
     var hasGuestsVal=document.querySelector('input[name="hasguests"]:checked').value;
     if(hasGuestsVal==='yes'){
-      var gNames=document.querySelectorAll('#guest-details .guest-name');
+      var gFirstNames=document.querySelectorAll('#guest-details .guest-first-name');
+      var gLastNames=document.querySelectorAll('#guest-details .guest-last-name');
       var gRels=document.querySelectorAll('#guest-details .guest-rel');
-      for(var i=0;i<gNames.length;i++){
-        if(!gNames[i].value.trim()){gNames[i].style.borderColor=err;if(valid)gNames[i].focus();valid=false;}
-        else{gNames[i].style.borderColor='';}
+      for(var i=0;i<gFirstNames.length;i++){
+        var guestFirstName=gFirstNames[i].value.trim();
+        var guestLastName=gLastNames[i].value.trim();
+        if(!guestFirstName||/\s/.test(guestFirstName)){gFirstNames[i].style.borderColor=err;if(valid)gFirstNames[i].focus();valid=false;}
+        else{gFirstNames[i].style.borderColor='';}
+        if(!guestLastName||/\s/.test(guestLastName)){gLastNames[i].style.borderColor=err;if(valid)gLastNames[i].focus();valid=false;}
+        else{gLastNames[i].style.borderColor='';}
         if(!gRels[i].value.trim()){gRels[i].style.borderColor=err;if(valid)gRels[i].focus();valid=false;}
         else{gRels[i].style.borderColor='';}
       }
@@ -1317,17 +1408,31 @@ function submitRSVP(){
   if(accepting){
     var hasGuestsVal=document.querySelector('input[name="hasguests"]:checked').value;
     if(hasGuestsVal==='yes'){
-      var gNames=document.querySelectorAll('#guest-details .guest-name');
+      var gFirstNames=document.querySelectorAll('#guest-details .guest-first-name');
+      var gMiddleNames=document.querySelectorAll('#guest-details .guest-middle-name');
+      var gLastNames=document.querySelectorAll('#guest-details .guest-last-name');
       var gRels=document.querySelectorAll('#guest-details .guest-rel');
-      for(var i=0;i<gNames.length;i++){
-        guests.push({name:gNames[i].value.trim(),relationship:gRels[i].value.trim()});
+      for(var i=0;i<gFirstNames.length;i++){
+        var guestFirstName=gFirstNames[i].value.trim();
+        var guestMiddleName=gMiddleNames[i].value.trim();
+        var guestLastName=gLastNames[i].value.trim();
+        guests.push({
+          firstName:guestFirstName,
+          middleName:guestMiddleName,
+          lastName:guestLastName,
+          name:getDisplayName(guestFirstName,guestMiddleName,guestLastName),
+          relationship:gRels[i].value.trim()
+        });
       }
     }
   }
   
   // Store RSVP data for submission to backend
   pendingRsvpData = {
-    name: nameEl.value.trim(),
+    firstName: firstName,
+    middleName: middleName,
+    lastName: lastName,
+    name: displayName,
     attendance: accepting ? 'Accepted' : 'Declined',
     email: email,
     phone: phone,
@@ -1349,19 +1454,17 @@ function submitRSVP(){
 
   var html='';
   function row(label,value){html+='<div class="modal-row"><div class="modal-label">'+label+'</div><div class="modal-value">'+value+'</div></div>';}
-  row('Name',nameEl.value.trim());
+  row('Name',displayName);
   if(email)row('Email',email);
   if(accepting&&phone)row('Phone',phone);
   html+='<div class="modal-divider"></div>';
   row('Reception',accepting?'Joyfully accepts':'Regretfully declines');
   if(accepting&&ceremony)row('Ceremony','Attending on Thursday, July 2nd');
   if(accepting&&hasGuests==='yes'){
-    var gNames=document.querySelectorAll('#guest-details .guest-name');
-    var gRels=document.querySelectorAll('#guest-details .guest-rel');
     var guestHtml='';
-    for(var i=0;i<gNames.length;i++){
-      guestHtml+=(i+1)+'. '+gNames[i].value.trim()+' ('+gRels[i].value.trim()+')';
-      if(i<gNames.length-1)guestHtml+='<br>';
+    for(var i=0;i<guests.length;i++){
+      guestHtml+=(i+1)+'. '+guests[i].name+' ('+guests[i].relationship+')';
+      if(i<guests.length-1)guestHtml+='<br>';
     }
     row('Guests',guestHtml);
   }

@@ -192,12 +192,35 @@ function enforceRsvpDeadline() {
 }
 
 function validateRsvp(data) {
-  if (!data.name || !data.attendance) {
+  const firstName = String(data.firstName || '').trim();
+  const lastName = String(data.lastName || '').trim();
+
+  if (!firstName || !lastName || !data.attendance) {
     throw new Error('Missing required RSVP fields');
+  }
+
+  if (/\s/.test(firstName) || /\s/.test(lastName)) {
+    throw new Error('First and last names cannot contain spaces.');
   }
 
   if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(data.email))) {
     throw new Error('A valid email address is required');
+  }
+
+  if (data.attendance === 'Accepted' && data.hasGuests === 'Yes') {
+    const guests = Array.isArray(data.guests) ? data.guests : [];
+
+    guests.forEach(function(guest) {
+      const guestName = normalizeGuestNameFields(guest);
+
+      if (!guestName.firstName || !guestName.lastName) {
+        throw new Error('Guest first and last names are required.');
+      }
+
+      if (/\s/.test(guestName.firstName) || /\s/.test(guestName.lastName)) {
+        throw new Error('Guest first and last names cannot contain spaces.');
+      }
+    });
   }
 }
 
@@ -277,10 +300,11 @@ function updateGuestListSheet() {
 
 function buildRsvpRow(data, emailResult) {
   const guests = Array.isArray(data.guests) ? data.guests : [];
+  const nameParts = normalizeRsvpNameFields(data);
 
   return [
     new Date(),
-    data.name || '',
+    nameParts.displayName,
     data.attendance || '',
     data.email || '',
     data.phone || '',
@@ -340,8 +364,22 @@ function getRsvpByEmail(email) {
     valueByHeader[header] = row[index];
   });
 
+  const nameParts = normalizeRsvpNameFields(valueByHeader['First Name'] || valueByHeader['Last Name']
+    ? {
+      firstName: valueByHeader['First Name'],
+      middleName: valueByHeader['Middle Name'],
+      lastName: valueByHeader['Last Name'],
+      name: valueByHeader['Name']
+    }
+    : {
+      name: valueByHeader['Name']
+    });
+
   return {
-    name: valueByHeader['Name'] || '',
+    firstName: nameParts.firstName,
+    middleName: nameParts.middleName,
+    lastName: nameParts.lastName,
+    name: nameParts.displayName,
     attendance: valueByHeader['Attendance'] || '',
     email: valueByHeader['Email'] || '',
     phone: valueByHeader['Phone'] || '',
@@ -350,6 +388,45 @@ function getRsvpByEmail(email) {
     guests: parseGuestList(valueByHeader['Guests']),
     dietary: valueByHeader['Dietary Requirements'] || '',
     message: valueByHeader['Message'] || ''
+  };
+}
+
+function normalizeRsvpNameFields(data) {
+  let firstName = String(data.firstName || '').trim();
+  let middleName = String(data.middleName || '').trim();
+  let lastName = String(data.lastName || '').trim();
+
+  if ((!firstName || !lastName) && data.name) {
+    const splitName = splitDisplayName(data.name);
+    firstName = firstName || splitName.firstName;
+    middleName = middleName || splitName.middleName;
+    lastName = lastName || splitName.lastName;
+  }
+
+  return {
+    firstName: firstName,
+    middleName: middleName,
+    lastName: lastName,
+    displayName: [firstName, middleName, lastName]
+      .filter(function(part) {
+        return part;
+      })
+      .join(' ')
+  };
+}
+
+function splitDisplayName(name) {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(function(part) {
+      return part;
+    });
+
+  return {
+    firstName: parts[0] || '',
+    middleName: parts.length > 2 ? parts.slice(1, -1).join(' ') : '',
+    lastName: parts.length > 1 ? parts[parts.length - 1] : ''
   };
 }
 
@@ -363,14 +440,25 @@ function parseGuestList(guestList) {
         return null;
       }
 
+      const nameParts = normalizeGuestNameFields({
+        name: match[1] || ''
+      });
+
       return {
-        name: match[1] || '',
+        firstName: nameParts.firstName,
+        middleName: nameParts.middleName,
+        lastName: nameParts.lastName,
+        name: nameParts.displayName,
         relationship: match[2] || ''
       };
     })
     .filter(function(guest) {
       return guest && guest.name;
     });
+}
+
+function normalizeGuestNameFields(guest) {
+  return normalizeRsvpNameFields(guest || {});
 }
 
 function getRsvpSheet() {
@@ -488,6 +576,9 @@ function testThankYouEmail() {
   }
 
   const result = sendThankYouEmail({
+    firstName: 'Test',
+    middleName: '',
+    lastName: 'Guest',
     name: 'Test Guest',
     attendance: 'Accepted',
     email: testEmail,
@@ -495,10 +586,16 @@ function testThankYouEmail() {
     guestCount: '2',
     guests: [
       {
+        firstName: 'Guest',
+        middleName: '',
+        lastName: 'One',
         name: 'Guest One',
         relationship: 'Friend'
       },
       {
+        firstName: 'Guest',
+        middleName: '',
+        lastName: 'Two',
         name: 'Guest Two',
         relationship: 'Family'
       }
@@ -584,13 +681,14 @@ function escapeIcsText(value) {
 }
 
 function buildAcceptedEmail(data) {
+  const displayName = normalizeRsvpNameFields(data).displayName;
   const guests = Array.isArray(data.guests) ? data.guests : [];
   const guestList = guests.length
     ? formatGuestList(guests)
     : 'No additional guests listed.';
 
   return [
-    'Dear ' + data.name + ',',
+    'Dear ' + displayName + ',',
     '',
     'Thank you for your RSVP. We are so happy that you will be joining us to celebrate the wedding of Pratik and Chelina.',
     '',
@@ -617,8 +715,10 @@ function buildAcceptedEmail(data) {
 }
 
 function buildDeclinedEmail(data) {
+  const displayName = normalizeRsvpNameFields(data).displayName;
+
   return [
-    'Dear ' + data.name + ',',
+    'Dear ' + displayName + ',',
     '',
     'Thank you for your RSVP. We are sorry that you will not be able to join us, but we truly appreciate you letting us know.',
     '',
@@ -631,6 +731,7 @@ function buildDeclinedEmail(data) {
 }
 
 function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
+  const displayName = normalizeRsvpNameFields(data).displayName;
   const guests = Array.isArray(data.guests) ? data.guests : [];
   const guestList = guests.length
     ? formatGuestListHtml(guests)
@@ -641,7 +742,7 @@ function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
     : '';
 
   return emailShell([
-    '<p style="margin:0 0 18px;color:#fdf8f0;font-size:18px;">Dear ' + escapeHtml(data.name) + ',</p>',
+    '<p style="margin:0 0 18px;color:#fdf8f0;font-size:18px;">Dear ' + escapeHtml(displayName) + ',</p>',
     '<p style="margin:0 0 22px;line-height:1.7;color:#fdf8f0;font-size:18px;">Thank you for your RSVP. We are so happy that you will be joining us to celebrate the wedding of Pratik and Chelina.</p>',
     '<div style="margin:24px 0;padding:22px 18px;border-top:1px solid rgba(238,194,25,.45);border-bottom:1px solid rgba(238,194,25,.45);text-align:center;">',
     '<p style="margin:0 0 10px;color:#EEC219;font-size:14px;letter-spacing:3px;text-transform:uppercase;">Wedding Reception</p>',
@@ -660,10 +761,11 @@ function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
 }
 
 function buildDeclinedEmailHtml(data, hasMandala) {
+  const displayName = normalizeRsvpNameFields(data).displayName;
   const guestMessageHtml = formatGuestMessageHtml(data.message);
 
   return emailShell([
-    '<p style="margin:0 0 18px;color:#fdf8f0;font-size:18px;">Dear ' + escapeHtml(data.name) + ',</p>',
+    '<p style="margin:0 0 18px;color:#fdf8f0;font-size:18px;">Dear ' + escapeHtml(displayName) + ',</p>',
     '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">Thank you for your RSVP. We are sorry that you will not be able to join us, but we truly appreciate you letting us know.</p>',
     '<p style="margin:0 0 18px;line-height:1.7;color:#fdf8f0;font-size:18px;">Your love, blessings, and good wishes mean so much to Pratik and Chelina as they begin this new chapter together.</p>',
     guestMessageHtml
@@ -719,7 +821,7 @@ function emailShell(content, hasMandala) {
 
 function formatGuestListHtml(guests) {
   const items = guests.map(function(guest) {
-    const name = escapeHtml(guest.name || 'Guest');
+    const name = escapeHtml(normalizeGuestNameFields(guest).displayName || 'Guest');
     const relationship = guest.relationship ? ' <span style="color:#f5d567;">(' + escapeHtml(guest.relationship) + ')</span>' : '';
 
     return '<li style="margin:0 0 8px;color:#fdf8f0;font-size:18px;">' + name + relationship + '</li>';
@@ -769,7 +871,7 @@ function escapeHtml(value) {
 function formatGuestList(guests) {
   return guests
     .map(function(guest, index) {
-      const name = guest.name || 'Guest';
+      const name = normalizeGuestNameFields(guest).displayName || 'Guest';
       const relationship = guest.relationship ? ' (' + guest.relationship + ')' : '';
 
       return (index + 1) + '. ' + name + relationship;
