@@ -11,7 +11,7 @@ const EVENT_TITLE = 'Pratik & Chelina Wedding Reception';
 const EVENT_LOCATION = 'The King Hall, Speranza Restaurant & Banquet Hall, 510 Deerhurst Dr., Brampton, ON';
 const EVENT_START_UTC = '20260703T220000Z';
 const EVENT_END_UTC = '20260704T030000Z';
-const RSVP_DEADLINE_UTC = new Date('2026-06-16T04:00:00Z'); // June 15, 2026 at 11:59 PM Toronto time.
+const RSVP_DEADLINE_UTC = new Date('2026-06-18T04:00:00Z'); // June 17, 2026 at 11:59 PM Toronto time.
 const EDIT_CODE_TTL_SECONDS = 10 * 60;
 const EDIT_TOKEN_TTL_SECONDS = 30 * 60;
 

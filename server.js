@@ -8,7 +8,7 @@ const HOST = '0.0.0.0';
 const ROOT_DIR = __dirname;
 const DATABASE_PATH = path.join(ROOT_DIR, 'rsvp.db');
 const SQLITE_BIN = process.env.SQLITE_BIN || 'sqlite3';
-const RSVP_DEADLINE_UTC = new Date('2026-06-16T04:00:00Z'); // June 15, 2026 at 11:59 PM Toronto time.
+const RSVP_DEADLINE_UTC = new Date('2026-06-18T04:00:00Z'); // June 17, 2026 at 11:59 PM Toronto time.
 
 const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
