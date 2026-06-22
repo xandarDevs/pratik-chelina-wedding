@@ -12,7 +12,7 @@ The wedding reception will be held on:
 
 ✦ Friday, July 3rd, 2026 ✦
 From 6:00 PM to 11:00 PM
-The King Hall
+King's Court
 Speranza Restaurant & Banquet Hall
 510 Deerhurst Dr., Brampton, ON
 
