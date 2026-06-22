@@ -8,7 +8,7 @@ const MAP_IMAGE_FILE_ID = '';
 const MAP_CONTENT_ID = 'venueMap';
 const GOOGLE_MAPS_URL = 'https://www.google.ca/maps/place/Speranza+Banquet+Hall/@43.7494212,-79.6793255,357m/data=!3m1!1e3!4m6!3m5!1s0x882b3cf16e13928f:0x5e5acc23452f3e69!8m2!3d43.7493559!4d-79.6781781!16s%2Fg%2F11b5wkxfs2?entry=ttu&g_ep=EgoyMDI2MDQyOS4wIKXMDSoASAFQAw%3D%3D';
 const EVENT_TITLE = 'Pratik & Chelina Wedding Reception';
-const EVENT_LOCATION = 'The King Hall, Speranza Restaurant & Banquet Hall, 510 Deerhurst Dr., Brampton, ON';
+const EVENT_LOCATION = "King's Court, Speranza Restaurant & Banquet Hall, 510 Deerhurst Dr., Brampton, ON";
 const EVENT_START_UTC = '20260703T220000Z';
 const EVENT_END_UTC = '20260704T030000Z';
 const RSVP_DEADLINE_UTC = new Date('2026-06-18T04:00:00Z'); // June 17, 2026 at 11:59 PM Toronto time.
@@ -696,7 +696,7 @@ function buildAcceptedEmail(data) {
     '',
     'Friday, July 3rd, 2026',
     'From 6:00 PM to 11:00 PM',
-    'The King Hall',
+    "King's Court",
     'Speranza Restaurant & Banquet Hall',
     '510 Deerhurst Dr., Brampton, ON',
     '',
@@ -748,7 +748,7 @@ function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
     '<p style="margin:0 0 10px;color:#EEC219;font-size:14px;letter-spacing:3px;text-transform:uppercase;">Wedding Reception</p>',
     '<p style="margin:0 0 8px;color:#f5d567;font-size:26px;font-family:Georgia,serif;">Friday, July 3rd, 2026</p>',
     '<p style="margin:0 0 14px;color:#fdf8f0;font-size:18px;">From 6:00 PM to 11:00 PM</p>',
-    '<p style="margin:0;color:#fdf8f0;line-height:1.6;font-size:18px;">The King Hall<br>Speranza Restaurant &amp; Banquet Hall<br>510 Deerhurst Dr., Brampton, ON</p>',
+    '<p style="margin:0;color:#fdf8f0;line-height:1.6;font-size:18px;">King&#39;s Court<br>Speranza Restaurant &amp; Banquet Hall<br>510 Deerhurst Dr., Brampton, ON</p>',
     '<a href="' + GOOGLE_MAPS_URL + '" target="_blank" style="display:inline-block;margin-top:18px;padding:11px 18px;background:#EEC219;color:#5a0d0f;text-decoration:none;border-radius:3px;font-size:14px;letter-spacing:2px;text-transform:uppercase;">Open in Google Maps</a>',
     mapImageHtml,
     '</div>',
