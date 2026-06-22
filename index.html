@@ -46,9 +46,6 @@
     nav.open .nav-links{opacity:1;pointer-events:auto;transform:translateY(0)}
     nav a{display:block;padding:.9rem 1rem;text-align:center;border-radius:3px;font-size:13px;letter-spacing:2px}
     nav a.active{border-bottom:none;background:rgba(238,194,25,.1)}
-    /* On mobile the RSVP form is tall, so anchor content at the top of the section
-       (instead of vertically centered) so the form is visible on arrival */
-    #rsvp{justify-content:flex-start;padding-top:5rem}
   }
 
   section{
@@ -119,7 +116,7 @@
   /* ── Side half-mandala for middle sections ── */
   /* Each section is a stacking context (z-index:0) so z-index:-1 children
      sit above the section background but beneath all normal content */
-  #story,#events,#schedule,#gallery,#rsvp,#registry{position:relative;z-index:0;overflow:clip}
+  #story,#events,#schedule,#gallery,#registry{position:relative;z-index:0;overflow:clip}
   .mandala-side{
     position:absolute;
     width:36vw;
@@ -217,63 +214,7 @@
     .g-item.featured:hover{transform:scale(1.3)}
   }
 
-  #rsvp{background:var(--burg-dk)}
-  .rsvp-card{background:rgba(40,5,7,.94);border:1px solid rgba(238,194,25,.25);border-radius:6px;padding:2.5rem;max-width:540px;width:100%;margin-top:2.5rem;box-shadow:0 8px 40px rgba(0,0,0,.35);isolation:isolate}
-  .rsvp-card-header{text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(238,194,25,.12)}
-  .rsvp-card-header .ornament{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold);opacity:.6;letter-spacing:8px}
-  .form-row{margin-bottom:1.25rem}
-  .form-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(238,194,25,.15),transparent);margin:1.5rem 0}
-  label{display:block;font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);opacity:.65;margin-bottom:.5rem}
-  input,select,textarea{width:100%;background:rgba(90,13,15,.96);border:1px solid rgba(238,194,25,.18);border-radius:3px;padding:.8rem 1rem;color:var(--cream);font-family:'Lato',sans-serif;font-size:17px;font-weight:300;outline:none;transition:border-color .25s,box-shadow .25s}
-  input:focus,select:focus,textarea:focus{border-color:rgba(238,194,25,.55);box-shadow:0 0 0 3px rgba(238,194,25,.08)}
-  input::placeholder,textarea::placeholder{color:rgba(253,248,240,.25)}
-  select option{background:var(--burg-dk);color:var(--cream)}
-  .radio-group{display:flex;gap:1.5rem}
-  .radio-group label{letter-spacing:0;text-transform:none;font-size:17px;display:flex;align-items:center;gap:.5rem;cursor:pointer;opacity:1;color:var(--cream)}
-  .radio-group input[type=radio]{width:auto;accent-color:var(--gold)}
-  .form-row-slide{overflow:hidden;max-height:0;opacity:0;margin-bottom:0;transition:max-height .35s ease,opacity .28s ease,margin-bottom .35s ease}
-  .form-row-slide.open{max-height:800px;opacity:1;margin-bottom:1.25rem}
-  .guest-details{margin-top:.75rem}
-  .guest-entry{display:grid;grid-template-columns:24px repeat(4,minmax(0,1fr));gap:.5rem;margin-bottom:.5rem;align-items:center}
-  .guest-entry span{color:var(--gold);font-size:13px;min-width:18px;text-align:center}
-  .guest-entry input{min-width:0;padding:.6rem .75rem;border:1px solid rgba(212,175,55,.18);border-radius:8px;background:rgba(212,175,55,.04);color:var(--cream);font-family:inherit;font-size:15px;outline:none;transition:border-color .2s}
-  .guest-entry input:focus{border-color:var(--gold)}
-  .guest-entry input::placeholder{color:rgba(253,248,240,.25)}
-  @media(max-width:640px){
-    .guest-entry{grid-template-columns:24px 1fr 1fr}
-    .guest-entry span{grid-row:1 / 3}
-    .guest-entry .guest-last-name{grid-column:2 / 3}
-    .guest-entry .guest-rel{grid-column:3 / 4}
-  }
-  .edit-code-panel{display:none;margin:-.5rem 0 1.35rem;padding:1rem;border:1px solid rgba(238,194,25,.18);border-radius:4px;background:rgba(255,255,255,.04)}
-  .edit-code-panel.open{display:block}
-  .edit-code-actions{display:flex;gap:.65rem;margin-top:.65rem}
-  .edit-code-actions button{flex:1;padding:.7rem .85rem;border-radius:3px;font-family:'Lato',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s,box-shadow .2s}
-  .edit-code-actions button:hover{opacity:.88}
-  .edit-code-actions .verify-code-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;box-shadow:0 2px 10px rgba(238,194,25,.18)}
-  .edit-code-actions .resend-code-btn{background:transparent;color:var(--gold);border:1px solid rgba(238,194,25,.3)}
-  .submit-btn{width:100%;padding:1rem;background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;border-radius:3px;font-size:15px;letter-spacing:5px;text-transform:uppercase;font-weight:400;cursor:pointer;transition:opacity .2s,box-shadow .2s;margin-top:.25rem;font-family:'Lato',sans-serif;box-shadow:0 2px 12px rgba(238,194,25,.25)}
-  .submit-btn:hover{opacity:.88;box-shadow:0 4px 20px rgba(238,194,25,.35)}
-  .success-msg{display:none;text-align:center;padding:2rem 1.5rem;font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);line-height:1.6}
-  .closed-msg{display:none;text-align:center;padding:2rem 1.5rem}
-  .closed-msg h3{font-family:'Playfair Display',serif;font-size:28px;color:var(--gold);font-weight:400;margin-bottom:1rem}
-  .closed-msg p{font-size:18px;color:rgba(253,248,240,.72);line-height:1.8}
 
-  /* ── RSVP Confirmation Modal ── */
-  .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center}
-  .modal-overlay.open{display:flex}
-  .modal-card{background:var(--burg-dk);border:1px solid rgba(238,194,25,.3);border-radius:6px;padding:2.5rem;max-width:480px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 12px 50px rgba(0,0,0,.5)}
-  .modal-card .ornament{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);opacity:.6;letter-spacing:8px;text-align:center;margin-bottom:1.5rem}
-  .modal-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);text-align:center;font-weight:400;margin-bottom:1.5rem}
-  .modal-row{margin-bottom:1rem}
-  .modal-label{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);opacity:.6;margin-bottom:.2rem}
-  .modal-value{font-size:17px;color:var(--cream);font-weight:300;line-height:1.5}
-  .modal-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(238,194,25,.15),transparent);margin:1.25rem 0}
-  .modal-buttons{display:flex;gap:1rem;margin-top:1.75rem}
-  .modal-btn{flex:1;padding:.85rem;border-radius:3px;font-family:'Lato',sans-serif;font-size:14px;letter-spacing:4px;text-transform:uppercase;font-weight:400;cursor:pointer;transition:opacity .2s,box-shadow .2s}
-  .modal-btn:hover{opacity:.88}
-  .modal-btn.confirm{background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;box-shadow:0 2px 12px rgba(238,194,25,.25)}
-  .modal-btn.edit{background:transparent;color:var(--gold);border:1px solid rgba(238,194,25,.35);box-shadow:none}
   .gallery-lightbox{display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.78);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:2rem}
   .gallery-lightbox.open{display:flex}
   .gallery-lightbox-panel{position:relative;max-width:min(1100px,92vw);max-height:88vh;border:1px solid rgba(238,194,25,.38);border-radius:6px;background:rgba(40,5,7,.96);box-shadow:0 20px 70px rgba(0,0,0,.62);padding:.75rem}
@@ -304,10 +245,7 @@
   #home-fab.visible{opacity:1;pointer-events:auto;transform:translateY(0)}
   #home-fab .fab-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);opacity:.5}
 
-  #rsvp-fab{position:fixed;bottom:5.5rem;right:2rem;z-index:200;background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border:none;border-radius:50px;padding:.85rem 1.5rem;font-family:'Lato',sans-serif;font-size:13px;letter-spacing:4px;text-transform:uppercase;font-weight:400;cursor:pointer;box-shadow:0 4px 20px rgba(238,194,25,.4);transition:opacity .35s,transform .35s,box-shadow .2s;text-decoration:none;display:flex;align-items:center;gap:.5rem}
-  #rsvp-fab:hover{box-shadow:0 6px 28px rgba(238,194,25,.55);transform:translateY(-2px)}
-  #rsvp-fab.hidden{opacity:0;pointer-events:none;transform:translateY(12px)}
-  #rsvp-fab .fab-dot{width:8px;height:8px;border-radius:50%;background:var(--burg-dk);opacity:.5}
+
   #location-fab{position:fixed;bottom:2rem;right:2rem;z-index:200;background:rgba(126,18,21,.9);color:var(--gold);border:1px solid rgba(238,194,25,.35);border-radius:50px;padding:.85rem 1.5rem;font-family:'Lato',sans-serif;font-size:13px;letter-spacing:4px;text-transform:uppercase;font-weight:400;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.35);backdrop-filter:blur(6px);transition:opacity .35s,transform .35s,box-shadow .2s;text-decoration:none;display:flex;align-items:center;gap:.5rem}
   #location-fab:hover{box-shadow:0 6px 28px rgba(0,0,0,.5);transform:translateY(-2px)}
   #location-fab.hidden{opacity:0;pointer-events:none;transform:translateY(12px)}
@@ -370,7 +308,6 @@
 
 <a id="home-fab" href="#hero"><span class="fab-dot"></span>Home</a>
 <a id="location-fab" href="#location"><span class="fab-dot"></span>Venue</a>
-<a id="rsvp-fab" href="#rsvp"><span class="fab-dot"></span>REGISTER HERE!</a>
 <button class="edge-nav prev hidden" type="button" aria-label="Previous section"><span aria-hidden="true">&#8249;</span></button>
 <button class="edge-nav next" type="button" aria-label="Next section"><span aria-hidden="true">&#8250;</span></button>
 
@@ -385,7 +322,6 @@
       <a href="#events">Events</a>
       <a href="#schedule">Schedule</a>
       <a href="#gallery">Gallery</a>
-      <a href="#rsvp">REGISTER</a>
       <a href="#registry">Gifts</a>
       <a href="#location">Venue</a>
     </div>
@@ -503,10 +439,9 @@
       <p class="event-tag">Friday, July 3, 2026<br>6:00 PM - 11:00 PM</p>
       <h3 class="event-name">Reception</h3>
       <div class="event-divider"></div>
-      <p class="event-location"><a class="venue-link" href="#location">Speranza Restaurant &amp; Banquet Hall</a><br>The King Hall<br><a class="venue-link" href="#location">Brampton, ON</a></p>
+      <p class="event-location"><a class="venue-link" href="#location">Speranza Restaurant &amp; Banquet Hall</a><br>King's Court<br><a class="venue-link" href="#location">Brampton, ON</a></p>
     </div>
   </div>
-  <a href="#rsvp" style="display:inline-block;margin-top:2.5rem;padding:.9rem 2.5rem;background:linear-gradient(135deg,var(--gold),var(--gold-dk));color:var(--burg-dk);border-radius:3px;font-family:'Lato',sans-serif;font-size:14px;letter-spacing:5px;text-transform:uppercase;font-weight:400;text-decoration:none;box-shadow:0 2px 12px rgba(238,194,25,.25);transition:opacity .2s,box-shadow .2s" onmouseover="this.style.opacity='.85';this.style.boxShadow='0 4px 20px rgba(238,194,25,.4)'" onmouseout="this.style.opacity='1';this.style.boxShadow='0 2px 12px rgba(238,194,25,.25)'">REGISTER HERE!</a>
 </section>
 
 <!-- SCHEDULE -->
@@ -533,7 +468,7 @@
         <p class="t-time">July 3, 2026 - 6:00 PM</p>
         <p class="t-title">Welcome to the Newlyweds</p>
         <p class="t-desc"><a class="venue-link" href="#location">Speranza Restaurant &amp; Banquet Hall</a></p>
-        <p class="t-desc">The King Hall</p>
+        <p class="t-desc">King's Court</p>
         <p class="t-desc"><a class="venue-link" href="#location">Brampton, ON.</a></p>
       </div>
       <div class="t-dot"></div>
@@ -593,111 +528,7 @@
   </div>
 </section>
 
-<!-- RSVP -->
-<section id="rsvp">
-  <div class="mandala-side left"><img src="images/LeafMandala.png" alt=""/></div>
-  <div class="mandala-side right"><img src="images/LeafMandala.png" alt=""/></div>
-  <p class="section-label">Kindly Reply By<br>June 15, 2026</p>
-  <h2 class="section-title">RSVP</h2>
-  <div class="gold-rule"><span></span><i>✦</i><span></span></div>
-  <div class="rsvp-card">
-    <div id="rsvp-form">
-      <div class="rsvp-card-header">
-        <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
-      </div>
-      <div class="form-row">
-        <label>First Name <span style="color:var(--gold-lt);opacity:1">*</span></label>
-        <input type="text" id="first-name" placeholder="First name" pattern="\S+" title="First name cannot contain spaces" required/>
-      </div>
-      <div class="form-row">
-        <label>Middle Name <span style="color:var(--gold-lt);opacity:.7;font-size:12px;letter-spacing:1px">(Optional)</span></label>
-        <input type="text" id="middle-name" placeholder="Middle name"/>
-      </div>
-      <div class="form-row">
-        <label>Last Name <span style="color:var(--gold-lt);opacity:1">*</span></label>
-        <input type="text" id="last-name" placeholder="Last name" pattern="\S+" title="Last name cannot contain spaces" required/>
-      </div>
-      <div class="form-row">
-        <label>Reception Attendance</label>
-        <div class="radio-group">
-          <label><input type="radio" name="attend" value="yes" checked onclick="toggleAttendance(this)"/> Joyfully accepts</label>
-          <label><input type="radio" name="attend" value="no" onclick="toggleAttendance(this)"/> Regretfully declines</label>
-        </div>
-      </div>
-      <div class="form-row">
-        <label>Email Address <span style="color:var(--gold-lt);opacity:1">*</span></label>
-        <input type="email" id="email" placeholder="your@email.com" required/>
-      </div>
-      <p id="contact-hint" style="font-size:13px;color:rgba(253,248,240,.4);letter-spacing:1px;margin-top:-.5rem;margin-bottom:1.25rem"><span style="color:var(--gold-lt)">*</span> Please use the same email address if you need to update your RSVP later</p>
-      <div class="edit-code-panel" id="edit-code-panel">
-        <label>One-Time Code</label>
-        <input type="text" id="edit-code" inputmode="numeric" maxlength="6" placeholder="Enter the 6-digit code"/>
-        <div class="edit-code-actions">
-          <button type="button" class="verify-code-btn" onclick="verifyRsvpEditCode()">Load RSVP</button>
-          <button type="button" class="resend-code-btn" onclick="requestRsvpEditCode(true)">Resend Code</button>
-        </div>
-      </div>
-      <div id="accept-fields">
-      <div class="form-row">
-        <label>Phone Number <span style="color:var(--gold-lt);opacity:.7;font-size:12px;letter-spacing:1px">(Optional)</span></label>
-        <input type="tel" id="phone" placeholder="+1 (xxx) xxx-xxxx"/>
-      </div>
-      <!-- <div class="form-row-slide" id="ceremony-row">
-        <label>Ceremony</label>
-        <div class="checkbox-row">
-          <input type="checkbox" id="ceremony" name="ceremony"/>
-          <label for="ceremony">I will also be attending the Ceremony on Thursday, July 2nd at 8:00 AM</label>
-        </div>
-      </div> -->
-      <div class="form-row">
-        <label>Bringing any additional guests?</label>
-        <div class="radio-group">
-          <label><input type="radio" name="hasguests" value="yes" checked onclick="toggleGuests(this)"/> Yes</label>
-          <label><input type="radio" name="hasguests" value="no"  onclick="toggleGuests(this)"/> No</label>
-        </div>
-      </div>
-      <div class="form-row-slide" id="guests-row">
-        <label>Number of Guests</label>
-        <select id="guests" onchange="renderGuestFields()">
-          <option>1</option><option>2</option><option>3</option><option>4</option>
-        </select>
-        <div class="guest-details" id="guest-details"></div>
-      </div>
-      <div class="form-divider"></div>
-      <div class="form-row">
-        <label>Dietary Requirements</label>
-        <input type="text" id="dietary" placeholder="Any allergies or preferences…"/>
-      </div>
-      <div class="form-row">
-        <label>A Message for the Couple</label>
-        <textarea id="message" rows="3" placeholder="Share your well wishes…" style="resize:vertical"></textarea>
-      </div>
-      <p style="font-size:15px;color:rgba(253,248,240,.4);letter-spacing:1px;margin-bottom:.75rem"><span style="color:var(--gold-lt)">*</span> Required fields</p>
-      </div><!-- /accept-fields -->
-      <button class="submit-btn" onclick="submitRSVP()">Send RSVP</button>
-    </div>
-    <div class="success-msg" id="success">
-      <div style="font-size:28px;color:var(--gold);margin-bottom:.75rem">✦</div>
-      Thank you! We can't wait to celebrate with you.<br>
-      Please check your email for a confirmation note. If you don't see it shortly, please check your spam or junk folder.
-    </div>
-    <div class="success-msg" id="success-decline">
-      <div style="font-size:28px;color:var(--gold);margin-bottom:.75rem">✦</div>
-      Thank you for letting us know.<br>We'll miss you and hope to celebrate together another time.<br>
-      Please check your email for a confirmation note. If you don't see it shortly, please check your spam or junk folder.
-    </div>
-    <div class="closed-msg" id="rsvp-closed">
-      <div style="font-size:28px;color:var(--gold);margin-bottom:.75rem">&#10022;</div>
-      <h3>RSVPs Are Now Closed</h3>
-      <p>
-        Thank you so much for your love and support. Due to limited seating, we are no longer able to accept additional RSVPs after the reply deadline.
-      </p>
-      <p style="margin-top:1rem">
-        We are grateful for your understanding and look forward to celebrating with everyone who has confirmed.
-      </p>
-    </div>
-  </div>
-</section>
+
 
 <!-- REGISTRY -->
 <section id="registry">
@@ -738,84 +569,11 @@
     <a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Speranza%20Restaurant%20%26%20Banquet%20Hall%20Brampton%20ON" target="_blank" rel="noopener" aria-label="Open Speranza Restaurant and Banquet Hall in Google Maps"></a>
   </div>
   <div class="footer-names">Pratik & Chelina</div>
-  <p class="location-detail">July 3, 2026<br><a class="venue-link" href="#location">Speranza Restaurant &amp; Banquet Hall</a><br>THE KING HALL<br><a class="venue-link" href="#location">510 Deerhurst Dr.,Brampton, ON</a></p>
+  <p class="location-detail">July 3, 2026<br><a class="venue-link" href="#location">Speranza Restaurant &amp; Banquet Hall</a><br>KING'S COURT<br><a class="venue-link" href="#location">510 Deerhurst Dr.,Brampton, ON</a></p>
   <p style="margin-top:3rem;font-size:12px;letter-spacing:2px;color:rgba(253,248,240,.35);text-transform:uppercase">Copyright © 2026 XandarDevs. All rights reserved.</p>
 </footer>
 
 <script>
-// ========== RSVP API ==========
-// Use localhost when opening the HTML file directly, otherwise use the same host as server.js.
-// const apiEndpoint = 'https://script.google.com/macros/s/AKfycby7jfoeRPavFQ71B-h356cDiXCyyOY6vPmbRO2kGmvx6jHeIe8THcr_MfltK2WUMtJF/exec'
-const apiEndpoint = 'https://script.google.com/macros/s/AKfycbxQX9jziVwdppkQ7Lmfd1mpLpKqK013Q2X5Fki0RKwNfDlm5YFbNhzI-gTVwz6_E0AK/exec'
-const RSVP_DEADLINE_UTC = new Date('2026-06-18T04:00:00Z'); // June 17, 2026 at 11:59 PM Toronto time.
-
-async function submitToBackend(rsvpData) {
-  const response = await fetch(apiEndpoint, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8'
-    },
-    body: JSON.stringify(rsvpData)
-  });
-
-  if (!response.ok) {
-    throw new Error('Unable to submit RSVP');
-  }
-
-  return response.json();
-}
-
-async function requestEditCode(email) {
-  const response = await fetch(apiEndpoint + '?action=requestEditCode&email=' + encodeURIComponent(email), {
-    method: 'GET',
-    redirect: 'follow'
-  });
-
-  if (!response.ok) {
-    throw new Error('Unable to request edit code');
-  }
-
-  return response.json();
-}
-
-async function verifyEditCode(email, code) {
-  const response = await fetch(apiEndpoint + '?action=verifyEditCode&email=' + encodeURIComponent(email) + '&code=' + encodeURIComponent(code), {
-    method: 'GET',
-    redirect: 'follow'
-  });
-
-  if (!response.ok) {
-    throw new Error('Unable to verify edit code');
-  }
-
-  return response.json();
-}
-
-let pendingRsvpData = null; // Store form data for submission after confirmation
-let lastRequestedCodeEmail = '';
-let verifiedRsvpEmail = '';
-let rsvpEditToken = '';
-
-function isRsvpClosed(){
-  return new Date() >= RSVP_DEADLINE_UTC;
-}
-
-function showRsvpClosed(){
-  var form=document.getElementById('rsvp-form');
-  var closed=document.getElementById('rsvp-closed');
-  var success=document.getElementById('success');
-  var decline=document.getElementById('success-decline');
-  if(form)form.style.display='none';
-  if(success)success.style.display='none';
-  if(decline)decline.style.display='none';
-  if(closed)closed.style.display='block';
-}
-
-if(isRsvpClosed()){
-  showRsvpClosed();
-}
-
 const petalColors=['#EEC219','#c9a414','#f5d567','#a8292d','#fdf8f0'];
 const petalShapes=[
   'M0,10 Q5,0 10,10 Q5,20 0,10Z',
@@ -850,7 +608,7 @@ for(let i=0;i<38;i++) mkPetal();
 (function(){
   const nav=document.querySelector('nav');
   const navLinks=Array.from(nav.querySelectorAll('a[href^="#"]'));
-  const darkIds=new Set(['story','schedule','rsvp','registry','location']);
+  const darkIds=new Set(['story','schedule','registry','location']);
   const sections=Array.from(document.querySelectorAll('section[id],footer[id]'));
   function updateNav(){
     const mid=window.scrollY+window.innerHeight/2;
@@ -1015,47 +773,6 @@ for(let i=0;i<38;i++) mkPetal();
   slides.forEach(function(section){slideObserver.observe(section);});
 })();
 
-// RSVP exception: clicking any #rsvp link immediately reveals the section content
-// and deterministically scrolls to the top of the section, bypassing the
-// IntersectionObserver timing window that can leave the form invisible on mobile.
-// A second scroll is applied after the transition settles to beat browser
-// scroll-restoration race conditions (notably mobile Safari / Chrome).
-(function(){
-  var rsvp=document.getElementById('rsvp');
-  if(!rsvp)return;
-  // Cache the nav element; its height is constant across the session
-  var navEl=document.querySelector('nav');
-  // Delay long enough for smooth-scroll and CSS transitions (~0.8 s) to finish
-  // before we pin the position, beating any mobile scroll-restoration race.
-  var SETTLE_MS=600;
-  function scrollToRsvp(e){
-    e.preventDefault();
-    // Immediately mark the section visible so content never flickers at opacity:0
-    rsvp.classList.add('slide-visible');
-    // Calculate target: top of section minus the fixed nav bar height
-    var navH=navEl?navEl.offsetHeight:0;
-    var targetTop=rsvp.getBoundingClientRect().top+window.scrollY-navH;
-    window.scrollTo({top:targetTop,behavior:'smooth'});
-    // Re-apply after transitions settle to beat any scroll-restoration or
-    // repaint race on mobile browsers
-    setTimeout(function(){
-      var freshTop=rsvp.getBoundingClientRect().top+window.scrollY-navH;
-      window.scrollTo({top:freshTop,behavior:'instant'});
-      rsvp.classList.add('slide-visible');
-    },SETTLE_MS);
-  }
-  document.querySelectorAll('a[href="#rsvp"]').forEach(function(link){
-    link.addEventListener('click',scrollToRsvp);
-  });
-})();
-
-// Hide RSVP FAB when RSVP section is visible
-const fab=document.getElementById('rsvp-fab');
-const rsvpSection=document.getElementById('rsvp');
-new IntersectionObserver(function(entries){
-  fab.classList.toggle('hidden',entries[0].isIntersecting);
-},{threshold:0.15}).observe(rsvpSection);
-
 // Hide Venue FAB when Location section is visible
 const locationFab=document.getElementById('location-fab');
 const locationSection=document.getElementById('location');
@@ -1070,499 +787,7 @@ new IntersectionObserver(function(entries){
   homeFab.classList.toggle('visible',!entries[0].isIntersecting);
 },{threshold:0.15}).observe(heroSection);
 
-// Initialise conditional fields to match the default checked state on load
-window.addEventListener('DOMContentLoaded',function(){
-  toggleAttendance(document.querySelector('input[name="attend"]:checked'));
-  toggleGuests(document.querySelector('input[name="hasguests"]:checked'));
-  var emailEl=document.getElementById('email');
-  if(emailEl){
-    emailEl.addEventListener('blur',function(){requestRsvpEditCode(false);});
-    emailEl.addEventListener('change',function(){
-      verifiedRsvpEmail='';
-      rsvpEditToken='';
-      lastRequestedCodeEmail='';
-      hideEditCodePanel();
-      requestRsvpEditCode(false);
-    });
-  }
-  var editCodeEl=document.getElementById('edit-code');
-  if(editCodeEl){
-    editCodeEl.addEventListener('input',function(){
-      editCodeEl.value=editCodeEl.value.replace(/\D/g,'').slice(0,6);
-    });
-    editCodeEl.addEventListener('keydown',function(event){
-      if(event.key==='Enter'){
-        event.preventDefault();
-        verifyRsvpEditCode();
-      }
-    });
-  }
-});
-
-function toggleGuests(radio){
-  var row=document.getElementById('guests-row');
-  if(radio.value==='yes'){row.classList.add('open');renderGuestFields();}
-  else{row.classList.remove('open');document.getElementById('guests').value='1';document.getElementById('guest-details').innerHTML='';}
-}
-
-function renderGuestFields(){
-  var count=parseInt(document.getElementById('guests').value);
-  var container=document.getElementById('guest-details');
-  var existing=container.querySelectorAll('.guest-entry');
-  // preserve already-entered values
-  var saved=[];
-  for(var i=0;i<existing.length;i++){
-    var firstNameEl=existing[i].querySelector('.guest-first-name');
-    var middleNameEl=existing[i].querySelector('.guest-middle-name');
-    var lastNameEl=existing[i].querySelector('.guest-last-name');
-    var relEl=existing[i].querySelector('.guest-rel');
-    saved.push({
-      firstName:firstNameEl?firstNameEl.value:'',
-      middleName:middleNameEl?middleNameEl.value:'',
-      lastName:lastNameEl?lastNameEl.value:'',
-      rel:relEl?relEl.value:''
-    });
-  }
-  container.innerHTML='';
-  for(var i=0;i<count;i++){
-    var div=document.createElement('div');
-    var index=document.createElement('span');
-    var firstNameInput=document.createElement('input');
-    var middleNameInput=document.createElement('input');
-    var lastNameInput=document.createElement('input');
-    var relInput=document.createElement('input');
-    div.className='guest-entry';
-    index.textContent=(i+1)+'.';
-    firstNameInput.type='text';
-    firstNameInput.className='guest-first-name guest-name';
-    firstNameInput.placeholder='First *';
-    firstNameInput.pattern='\\S+';
-    firstNameInput.title='First name cannot contain spaces';
-    firstNameInput.value=saved[i]?saved[i].firstName:'';
-    middleNameInput.type='text';
-    middleNameInput.className='guest-middle-name';
-    middleNameInput.placeholder='Middle';
-    middleNameInput.value=saved[i]?saved[i].middleName:'';
-    lastNameInput.type='text';
-    lastNameInput.className='guest-last-name';
-    lastNameInput.placeholder='Last *';
-    lastNameInput.pattern='\\S+';
-    lastNameInput.title='Last name cannot contain spaces';
-    lastNameInput.value=saved[i]?saved[i].lastName:'';
-    relInput.type='text';
-    relInput.className='guest-rel';
-    relInput.placeholder='Relationship *';
-    relInput.value=saved[i]?saved[i].rel:'';
-    div.appendChild(index);
-    div.appendChild(firstNameInput);
-    div.appendChild(middleNameInput);
-    div.appendChild(lastNameInput);
-    div.appendChild(relInput);
-    container.appendChild(div);
-  }
-}
-
-function toggleAttendance(radio){
-  var ceremonyRow=document.getElementById('ceremony-row');
-  var acceptFields=document.getElementById('accept-fields');
-  if(radio.value==='yes'){
-    acceptFields.style.display='';
-    if(ceremonyRow)ceremonyRow.classList.add('open');
-  } else {
-    acceptFields.style.display='none';
-    if(ceremonyRow)ceremonyRow.classList.remove('open');
-    var ceremonyCheckbox=document.getElementById('ceremony');
-    if(ceremonyCheckbox)ceremonyCheckbox.checked=false;
-  }
-}
-
-function setRadioValue(name,value){
-  var radio=document.querySelector('input[name="'+name+'"][value="'+value+'"]');
-  if(radio){
-    radio.checked=true;
-    if(name==='attend')toggleAttendance(radio);
-    if(name==='hasguests')toggleGuests(radio);
-  }
-}
-
-function getDisplayName(firstName,middleName,lastName){
-  return [firstName,middleName,lastName].filter(function(part){
-    return part;
-  }).join(' ');
-}
-
-function splitDisplayName(name){
-  var parts=String(name||'').trim().split(/\s+/).filter(Boolean);
-
-  return {
-    firstName: parts[0]||'',
-    middleName: parts.length>2?parts.slice(1,-1).join(' '):'',
-    lastName: parts.length>1?parts[parts.length-1]:''
-  };
-}
-
-function setContactHint(message,color){
-  var hint=document.getElementById('contact-hint');
-  if(!hint)return;
-  hint.innerHTML='<span style="color:var(--gold-lt)">*</span> '+message;
-  hint.style.color=color||'';
-}
-
-function hideEditCodePanel(){
-  var panel=document.getElementById('edit-code-panel');
-  var codeEl=document.getElementById('edit-code');
-  if(panel)panel.classList.remove('open');
-  if(codeEl)codeEl.value='';
-}
-
-function showEditCodePanel(){
-  var panel=document.getElementById('edit-code-panel');
-  var codeEl=document.getElementById('edit-code');
-  if(panel)panel.classList.add('open');
-  if(codeEl)codeEl.focus();
-}
-
-function populateRsvpForm(rsvp){
-  var accepting=rsvp.attendance==='Accepted';
-  var guests=Array.isArray(rsvp.guests)?rsvp.guests:[];
-  var nameParts={
-    firstName:rsvp.firstName||'',
-    middleName:rsvp.middleName||'',
-    lastName:rsvp.lastName||''
-  };
-  if(!nameParts.firstName&&!nameParts.lastName&&rsvp.name){
-    nameParts=splitDisplayName(rsvp.name);
-  }
-  document.getElementById('first-name').value=nameParts.firstName;
-  document.getElementById('middle-name').value=nameParts.middleName;
-  document.getElementById('last-name').value=nameParts.lastName;
-  document.getElementById('email').value=rsvp.email||document.getElementById('email').value;
-  setRadioValue('attend',accepting?'yes':'no');
-  document.getElementById('phone').value=rsvp.phone||'';
-  setRadioValue('hasguests',accepting&&rsvp.hasGuests==='Yes'?'yes':'no');
-
-  if(accepting&&rsvp.hasGuests==='Yes'){
-    var count=Math.min(Math.max(parseInt(rsvp.guestCount||guests.length||1,10),1),4);
-    document.getElementById('guests').value=String(count);
-    renderGuestFields();
-    var gFirstNames=document.querySelectorAll('#guest-details .guest-first-name');
-    var gMiddleNames=document.querySelectorAll('#guest-details .guest-middle-name');
-    var gLastNames=document.querySelectorAll('#guest-details .guest-last-name');
-    var gRels=document.querySelectorAll('#guest-details .guest-rel');
-    for(var i=0;i<gFirstNames.length;i++){
-      var guest=guests[i]||{};
-      var guestNameParts={
-        firstName:guest.firstName||'',
-        middleName:guest.middleName||'',
-        lastName:guest.lastName||''
-      };
-      if(!guestNameParts.firstName&&!guestNameParts.lastName&&guest.name){
-        guestNameParts=splitDisplayName(guest.name);
-      }
-      gFirstNames[i].value=guestNameParts.firstName;
-      gMiddleNames[i].value=guestNameParts.middleName;
-      gLastNames[i].value=guestNameParts.lastName;
-      gRels[i].value=guests[i]&&guests[i].relationship?guests[i].relationship:'';
-    }
-  }
-
-  document.getElementById('dietary').value=rsvp.dietary||'';
-  document.getElementById('message').value=rsvp.message||'';
-}
-
-async function requestRsvpEditCode(force){
-  if(isRsvpClosed())return;
-
-  var emailEl=document.getElementById('email');
-  var email=emailEl.value.trim();
-
-  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    return;
-  }
-
-  var normalizedEmail=email.toLowerCase();
-
-  if(!force&&(normalizedEmail===lastRequestedCodeEmail||normalizedEmail===verifiedRsvpEmail)){
-    return;
-  }
-
-  lastRequestedCodeEmail=normalizedEmail;
-  hideEditCodePanel();
-  setContactHint('Checking for an existing RSVP...', 'rgba(253,248,240,.55)');
-
-  try{
-    var result=await requestEditCode(email);
-
-    if(result.success&&result.codeSent){
-      setContactHint('We found your previous RSVP. Enter the one-time code sent to your email to load it.', 'rgba(245,213,103,.9)');
-      showEditCodePanel();
-      return;
-    }
-
-    setContactHint('Please use the same email address if you need to update your RSVP later', '');
-  }catch(error){
-    console.error('RSVP edit code request error:',error);
-    setContactHint('Please use the same email address if you need to update your RSVP later', '');
-  }
-}
-
-async function verifyRsvpEditCode(){
-  if(isRsvpClosed())return;
-
-  var emailEl=document.getElementById('email');
-  var codeEl=document.getElementById('edit-code');
-  var email=emailEl.value.trim();
-  var code=codeEl.value.trim();
-  var err='rgba(220,80,80,.8)';
-
-  codeEl.style.borderColor='';
-
-  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    emailEl.focus();
-    return;
-  }
-
-  if(!/^\d{6}$/.test(code)){
-    codeEl.style.borderColor=err;
-    codeEl.focus();
-    setContactHint('Please enter the 6-digit one-time code from your email.', err);
-    return;
-  }
-
-  setContactHint('Verifying your one-time code...', 'rgba(253,248,240,.55)');
-
-  try{
-    var result=await verifyEditCode(email,code);
-
-    if(result.success&&result.rsvp){
-      rsvpEditToken=result.editToken||'';
-      populateRsvpForm(result.rsvp);
-      verifiedRsvpEmail=email.toLowerCase();
-      hideEditCodePanel();
-      setContactHint('Your previous RSVP has been loaded. You can edit and submit again.', 'rgba(245,213,103,.9)');
-      return;
-    }
-
-    throw new Error(result.error||'The one-time code is invalid or has expired.');
-  }catch(error){
-    console.error('RSVP edit code verification error:',error);
-    codeEl.style.borderColor=err;
-    codeEl.focus();
-    setContactHint(error.message||'The one-time code is invalid or has expired.', err);
-  }
-}
-
-function submitRSVP(){
-  if(isRsvpClosed()){
-    showRsvpClosed();
-    return;
-  }
-
-  var firstNameEl=document.getElementById('first-name');
-  var middleNameEl=document.getElementById('middle-name');
-  var lastNameEl=document.getElementById('last-name');
-  var emailEl=document.getElementById('email');
-  var phoneEl=document.getElementById('phone');
-  var hint=document.getElementById('contact-hint');
-  var attend=document.querySelector('input[name="attend"]:checked').value;
-  var accepting=attend==='yes';
-  var email=emailEl.value.trim();
-  var phone=phoneEl.value.trim();
-  var firstName=firstNameEl.value.trim();
-  var middleName=middleNameEl.value.trim();
-  var lastName=lastNameEl.value.trim();
-  var displayName=getDisplayName(firstName,middleName,lastName);
-  var err='rgba(220,80,80,.8)';
-  firstNameEl.style.borderColor='';
-  middleNameEl.style.borderColor='';
-  lastNameEl.style.borderColor='';
-  emailEl.style.borderColor='';
-  phoneEl.style.borderColor='';
-  hint.style.color='';
-  var valid=true;
-  if(!firstName||/\s/.test(firstName)){firstNameEl.style.borderColor=err;firstNameEl.focus();valid=false;}
-  if(!lastName||/\s/.test(lastName)){lastNameEl.style.borderColor=err;if(valid)lastNameEl.focus();valid=false;}
-  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){emailEl.style.borderColor=err;hint.style.color=err;if(valid)emailEl.focus();valid=false;}
-  // Validate guest detail fields when bringing guests
-  if(accepting){
-    var hasGuestsVal=document.querySelector('input[name="hasguests"]:checked').value;
-    if(hasGuestsVal==='yes'){
-      var gFirstNames=document.querySelectorAll('#guest-details .guest-first-name');
-      var gLastNames=document.querySelectorAll('#guest-details .guest-last-name');
-      var gRels=document.querySelectorAll('#guest-details .guest-rel');
-      for(var i=0;i<gFirstNames.length;i++){
-        var guestFirstName=gFirstNames[i].value.trim();
-        var guestLastName=gLastNames[i].value.trim();
-        if(!guestFirstName||/\s/.test(guestFirstName)){gFirstNames[i].style.borderColor=err;if(valid)gFirstNames[i].focus();valid=false;}
-        else{gFirstNames[i].style.borderColor='';}
-        if(!guestLastName||/\s/.test(guestLastName)){gLastNames[i].style.borderColor=err;if(valid)gLastNames[i].focus();valid=false;}
-        else{gLastNames[i].style.borderColor='';}
-        if(!gRels[i].value.trim()){gRels[i].style.borderColor=err;if(valid)gRels[i].focus();valid=false;}
-        else{gRels[i].style.borderColor='';}
-      }
-    }
-  }
-  if(!valid)return;
-  
-  // Collect guest data for sheet submission
-  var guests=[];
-  if(accepting){
-    var hasGuestsVal=document.querySelector('input[name="hasguests"]:checked').value;
-    if(hasGuestsVal==='yes'){
-      var gFirstNames=document.querySelectorAll('#guest-details .guest-first-name');
-      var gMiddleNames=document.querySelectorAll('#guest-details .guest-middle-name');
-      var gLastNames=document.querySelectorAll('#guest-details .guest-last-name');
-      var gRels=document.querySelectorAll('#guest-details .guest-rel');
-      for(var i=0;i<gFirstNames.length;i++){
-        var guestFirstName=gFirstNames[i].value.trim();
-        var guestMiddleName=gMiddleNames[i].value.trim();
-        var guestLastName=gLastNames[i].value.trim();
-        guests.push({
-          firstName:guestFirstName,
-          middleName:guestMiddleName,
-          lastName:guestLastName,
-          name:getDisplayName(guestFirstName,guestMiddleName,guestLastName),
-          relationship:gRels[i].value.trim()
-        });
-      }
-    }
-  }
-  
-  // Store RSVP data for submission to backend
-  pendingRsvpData = {
-    firstName: firstName,
-    middleName: middleName,
-    lastName: lastName,
-    name: displayName,
-    attendance: accepting ? 'Accepted' : 'Declined',
-    email: email,
-    phone: phone,
-    hasGuests: accepting && document.querySelector('input[name="hasguests"]:checked').value === 'yes' ? 'Yes' : 'No',
-    guestCount: accepting && document.querySelector('input[name="hasguests"]:checked').value === 'yes' ? document.getElementById('guests').value : '0',
-    guests: guests,
-    dietary: accepting ? document.getElementById('dietary').value.trim() : '',
-    message: document.getElementById('message').value.trim(),
-    editToken: email.toLowerCase()===verifiedRsvpEmail ? rsvpEditToken : ''
-  };
-
-  // Build confirmation summary
-  var ceremonyEl=document.getElementById('ceremony');
-  var ceremony=ceremonyEl?ceremonyEl.checked:false;
-  var hasGuests=document.querySelector('input[name="hasguests"]:checked').value;
-  var guestCount=document.getElementById('guests').value;
-  var dietary=document.getElementById('dietary').value.trim();
-  var message=document.getElementById('message').value.trim();
-
-  var html='';
-  function row(label,value){html+='<div class="modal-row"><div class="modal-label">'+label+'</div><div class="modal-value">'+value+'</div></div>';}
-  row('Name',displayName);
-  if(email)row('Email',email);
-  if(accepting&&phone)row('Phone',phone);
-  html+='<div class="modal-divider"></div>';
-  row('Reception',accepting?'Joyfully accepts':'Regretfully declines');
-  if(accepting&&ceremony)row('Ceremony','Attending on Thursday, July 2nd');
-  if(accepting&&hasGuests==='yes'){
-    var guestHtml='';
-    for(var i=0;i<guests.length;i++){
-      guestHtml+=(i+1)+'. '+guests[i].name+' ('+guests[i].relationship+')';
-      if(i<guests.length-1)guestHtml+='<br>';
-    }
-    row('Guests',guestHtml);
-  }
-  if(accepting&&dietary)row('Dietary Requirements',dietary);
-  if(message)row('Message',message);
-
-  document.getElementById('modal-body').innerHTML=html;
-  document.getElementById('rsvp-modal').classList.add('open');
-}
-
-function closeModal(){
-  document.getElementById('rsvp-modal').classList.remove('open');
-}
-
-async function confirmRSVP(){
-  if(isRsvpClosed()){
-    document.getElementById('rsvp-modal').classList.remove('open');
-    showRsvpClosed();
-    return;
-  }
-
-  var attend=document.querySelector('input[name="attend"]:checked').value;
-  var confirmBtn=document.querySelector('#rsvp-modal .modal-btn.confirm');
-  var originalText=confirmBtn.textContent;
-
-  // Show loading state
-  confirmBtn.disabled=true;
-  confirmBtn.textContent='Submitting...';
-
-  try {
-    const result = await submitToBackend(pendingRsvpData);
-
-    if(result.success){
-      document.getElementById('rsvp-modal').classList.remove('open');
-      document.getElementById('rsvp-form').style.display='none';
-      if(attend==='yes'){
-        document.getElementById('success').style.display='block';
-      } else {
-        document.getElementById('success-decline').style.display='block';
-      }
-      pendingRsvpData=null;
-    } else {
-      if(result.error && result.error.indexOf('RSVPs are now closed') !== -1){
-        document.getElementById('rsvp-modal').classList.remove('open');
-        showRsvpClosed();
-        pendingRsvpData=null;
-        return;
-      }
-      throw new Error(result.error || 'Failed to submit RSVP');
-    }
-  } catch(error) {
-    if(error.message && error.message.indexOf('RSVPs are now closed') !== -1){
-      document.getElementById('rsvp-modal').classList.remove('open');
-      showRsvpClosed();
-      pendingRsvpData=null;
-      return;
-    }
-
-    if(error.message && error.message.indexOf('one-time code') !== -1){
-      document.getElementById('rsvp-modal').classList.remove('open');
-      document.getElementById('rsvp-form').style.display='block';
-      setContactHint(error.message, 'rgba(220,80,80,.8)');
-      requestRsvpEditCode(true);
-      pendingRsvpData=null;
-      return;
-    }
-
-    // Show error message but still close modal
-    console.error('RSVP submission error:', error);
-    document.getElementById('rsvp-modal').classList.remove('open');
-    document.getElementById('rsvp-form').style.display='none';
-    // Still show success message to user (data was validated)
-    if(attend==='yes'){
-      document.getElementById('success').style.display='block';
-    } else {
-      document.getElementById('success-decline').style.display='block';
-    }
-    alert('Note: There was an issue saving your RSVP. Please contact the couple directly to confirm your response.');
-  } finally {
-    confirmBtn.disabled=false;
-    confirmBtn.textContent=originalText;
-  }
-}
 </script>
-
-<!-- RSVP Confirmation Modal -->
-<div class="modal-overlay" id="rsvp-modal">
-  <div class="modal-card">
-    <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
-    <h3 class="modal-title">Please Confirm Your RSVP</h3>
-    <div id="modal-body"></div>
-    <div class="modal-buttons">
-      <button class="modal-btn edit" onclick="closeModal()">Edit</button>
-      <button class="modal-btn confirm" onclick="confirmRSVP()">Confirm</button>
-    </div>
-  </div>
-</div>
 
 <!-- Gallery Image Pop-Out -->
 <div class="gallery-lightbox" id="gallery-lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Expanded gallery image">
