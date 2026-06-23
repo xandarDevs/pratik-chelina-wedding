@@ -356,6 +356,19 @@
     section > :not(.mandala-corner):not(.mandala-side){opacity:1;transform:none;transition:none}
   }
 </style>
+  <style>
+    nav a.register-disabled,
+    nav button.register-disabled,
+    .menu a.register-disabled,
+    .menu button.register-disabled,
+    .navbar a.register-disabled,
+    .navbar button.register-disabled {
+      color: #9ca3af !important;
+      opacity: 0.65;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
 
@@ -380,7 +393,7 @@
       <a href="#events">Events</a>
       <a href="#schedule">Schedule</a>
       <a href="#gallery">Gallery</a>
-      <a href="#rsvp">REGISTER</a>
+      <a class="register-disabled" aria-disabled="true" tabindex="-1">REGISTER</a>
       <a href="#registry">Gifts</a>
       <a href="#location">Venue</a>
     </div>
@@ -1587,6 +1600,5 @@ async function confirmRSVP(){
     <img id="gallery-lightbox-img" alt=""/>
   </div>
 </div>
-
 </body>
 </html>
