@@ -514,7 +514,7 @@ function sendThankYouEmail(data) {
 
   const accepting = data.attendance === 'Accepted';
   const subject = accepting
-    ? 'Thank You for Your RSVP'
+    ? 'See you soon'
     : 'Thank You for Letting Us Know';
 
   const body = accepting
@@ -695,7 +695,8 @@ function buildAcceptedEmail(data) {
     'The wedding reception will be held on:',
     '',
     'Friday, July 3rd, 2026',
-    'From 6:00 PM to 11:00 PM',
+    'Please arrive at 5:45 PM. The hall door will open at 6:00 PM.',
+    'Reception from 6:00 PM to 11:00 PM',
     'The King Hall',
     'Speranza Restaurant & Banquet Hall',
     '510 Deerhurst Dr., Brampton, ON',
@@ -747,7 +748,7 @@ function buildAcceptedEmailHtml(data, hasMandala, hasMapImage) {
     '<div style="margin:24px 0;padding:22px 18px;border-top:1px solid rgba(238,194,25,.45);border-bottom:1px solid rgba(238,194,25,.45);text-align:center;">',
     '<p style="margin:0 0 10px;color:#EEC219;font-size:14px;letter-spacing:3px;text-transform:uppercase;">Wedding Reception</p>',
     '<p style="margin:0 0 8px;color:#f5d567;font-size:26px;font-family:Georgia,serif;">Friday, July 3rd, 2026</p>',
-    '<p style="margin:0 0 14px;color:#fdf8f0;font-size:18px;">From 6:00 PM to 11:00 PM</p>',
+    '<p style="margin:0 0 14px;color:#fdf8f0;font-size:18px;">Please arrive at 5:45 PM. The hall door will open at 6:00 PM.<br>Reception from 6:00 PM to 11:00 PM</p>',
     '<p style="margin:0;color:#fdf8f0;line-height:1.6;font-size:18px;">The King Hall<br>Speranza Restaurant &amp; Banquet Hall<br>510 Deerhurst Dr., Brampton, ON</p>',
     '<a href="' + GOOGLE_MAPS_URL + '" target="_blank" style="display:inline-block;margin-top:18px;padding:11px 18px;background:#EEC219;color:#5a0d0f;text-decoration:none;border-radius:3px;font-size:14px;letter-spacing:2px;text-transform:uppercase;">Open in Google Maps</a>',
     mapImageHtml,
